@@ -5,6 +5,9 @@
 @plugin "flowbite/plugin";
 @source "../node_modules/flowbite";
 
+/* Enable dark mode via class strategy */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* TEXT COLOR VARIABLES */
   /* main text color */
