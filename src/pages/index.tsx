@@ -9,9 +9,11 @@ import Feed5, { mockData } from "@/components/Feed5";
 import LeftSidebar from "@/components/LeftSidebar";
 import RightSidebar from "@/components/RightSidebar";
 import TeamFilter from "@/components/TeamFilter";
+import Drawer from "@/components/Drawer";
 
 export default function Home() {
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // static teams list (quick, guaranteed to render). 'ALL' will map to no filter.
   const teams = [
@@ -27,17 +29,21 @@ export default function Home() {
     else setSelectedTeam(teamKey);
   }
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 antialiased h-screen overflow-hidden p-4">
-      <div className="flex h-full gap-4">
-        <LeftSidebar />
+    <>
+      <Drawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
-  <main className="flex-1 bg-gray-50 dark:bg-gray-900 h-full overflow-y-auto space-y-2">
-          <TeamFilter teams={teams} selected={selectedTeam} onSelect={handleSelect} />
-          <Feed5 selectedTeam={selectedTeam} />
-        </main>
+      <div className="bg-gray-50 dark:bg-gray-900 antialiased h-screen overflow-hidden p-4">
+        <div className="flex h-full gap-4">
+          <LeftSidebar onRetrospectiveClick={() => setDrawerOpen(true)} />
 
-        <RightSidebar />
+          <main className="flex-1 bg-gray-50 dark:bg-gray-900 h-full overflow-y-auto space-y-2">
+            <TeamFilter teams={teams} selected={selectedTeam} onSelect={handleSelect} />
+            <Feed5 selectedTeam={selectedTeam} />
+          </main>
+
+          <RightSidebar />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

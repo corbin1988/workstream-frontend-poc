@@ -2,7 +2,11 @@ import { useState } from "react";
 import DarkModeToggle from "./DarkModeToggle";
 import { Avatar, Button } from "flowbite-react";
 
-export default function LeftSidebar() {
+interface LeftSidebarProps {
+    onRetrospectiveClick: () => void;
+}
+
+export default function LeftSidebar({ onRetrospectiveClick }: LeftSidebarProps) {
     const [chatOpen, setChatOpen] = useState(true);
     const [documentsOpen, setDocumentsOpen] = useState(false);
     const [gettingStartedOpen, setGettingStartedOpen] = useState(false);
@@ -200,6 +204,7 @@ export default function LeftSidebar() {
                     <div className="px-6 py-6">
                         <div className="flex justify-center">
                             <Button
+                                onClick={onRetrospectiveClick}
                                 className="w-72 -mx-5 rounded-full bg-blue-500 hover:bg-blue-600 text-white font-semibold shadow-lg py-6"
                                 aria-label="Open retrospective"
                             >
