@@ -10,10 +10,14 @@ import LeftSidebar from "@/components/LeftSidebar";
 import RightSidebar from "@/components/RightSidebar";
 import TeamFilter from "@/components/TeamFilter";
 import Drawer from "@/components/Drawer";
+import WorkDrawer from "@/components/WorkDrawer";
+import WorkDrawer2 from "@/components/WorkDrawer2";
+import WorkDrawer3 from "@/components/WorkDrawer3";
 
 export default function Home() {
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [workDrawerOpen, setWorkDrawerOpen] = useState(false);
 
   // static teams list (quick, guaranteed to render). 'ALL' will map to no filter.
   const teams = [
@@ -31,10 +35,14 @@ export default function Home() {
   return (
     <>
       <Drawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      <WorkDrawer3 isOpen={workDrawerOpen} onClose={() => setWorkDrawerOpen(false)} />
 
       <div className="bg-gray-50 dark:bg-gray-900 antialiased h-screen overflow-hidden p-4">
         <div className="flex h-full gap-4">
-          <LeftSidebar onRetrospectiveClick={() => setDrawerOpen(true)} />
+          <LeftSidebar 
+            onRetrospectiveClick={() => setDrawerOpen(true)} 
+            onDailyReviewClick={() => setWorkDrawerOpen(true)}
+          />
 
           <main className="flex-1 bg-gray-50 dark:bg-gray-900 h-full overflow-y-auto space-y-2">
             <TeamFilter teams={teams} selected={selectedTeam} onSelect={handleSelect} />
