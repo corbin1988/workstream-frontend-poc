@@ -5,6 +5,8 @@
 @plugin "flowbite/plugin";
 @source "../node_modules/flowbite";
 
+@plugin "@tailwindcss/typography";
+
 /* Enable dark mode via class strategy */
 @custom-variant dark (&:where(.dark, .dark *));
 
