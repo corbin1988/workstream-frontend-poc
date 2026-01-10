@@ -2,6 +2,8 @@ import { useState, ReactNode } from "react";
 import LeftSidebar from "@/components/LeftSidebar";
 import WorkDrawer3 from "@/components/WorkDrawer3";
 import Drawer from "@/components/Drawer";
+import BottomNavigation from "@/components/BottomNavigation";
+import BottomNavigation2 from "./BottomNavigation2";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -24,6 +26,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
           />
 
           {children}
+        </div>
+        
+        <div className="lg:hidden">
+          <BottomNavigation2 />
         </div>
       </div>
     </>
