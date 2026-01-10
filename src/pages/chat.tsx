@@ -1,5 +1,3 @@
-import LeftSidebar from "@/components/LeftSidebar";
-import Drawer from "@/components/Drawer";
 import { useState } from "react";
 import { Button, Textarea, Badge } from "flowbite-react";
 
@@ -16,7 +14,6 @@ interface Message {
 }
 
 export default function Chat() {
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -63,14 +60,7 @@ export default function Chat() {
   };
 
   return (
-    <>
-      <Drawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
-
-      <div className="bg-gray-50 dark:bg-gray-900 antialiased h-screen overflow-hidden p-4">
-        <div className="flex h-full gap-4">
-          <LeftSidebar onRetrospectiveClick={() => setDrawerOpen(true)} />
-
-          <main className="flex-1 bg-white dark:bg-gray-800 h-full rounded-lg shadow-lg flex flex-col">
+    <main className="flex-1 bg-white dark:bg-gray-800 h-full rounded-lg shadow-lg flex flex-col lg:ml-64 px-4 py-4">
             {/* Chat Header */}
             <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
               <div className="flex items-center gap-3">
@@ -229,10 +219,7 @@ export default function Chat() {
                   Chat can access your work items, team activity, and documentation to provide context-aware answers
                 </p>
               </div>
-            </div>
-          </main>
         </div>
-      </div>
-    </>
+      </main>
   );
 }

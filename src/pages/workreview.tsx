@@ -1,6 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import LeftSidebar from "@/components/LeftSidebar";
-import WorkDrawer3 from "@/components/WorkDrawer3";
 
 interface SelectedWorkItem {
   key: string;
@@ -46,7 +44,6 @@ export default function WorkReview() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemStates, setItemStates] = useState<Record<string, ItemState>>({});
   const [input, setInput] = useState('');
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const currentItem = selectedWorkItems[currentIndex];
@@ -115,18 +112,7 @@ export default function WorkReview() {
   };
 
   return (
-    <>
-      <WorkDrawer3 isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
-      
-      <div className="bg-gray-50 dark:bg-gray-900 antialiased h-screen overflow-hidden p-4">
-        <div className="flex h-full gap-4">
-          <LeftSidebar 
-            onRetrospectiveClick={() => {}} 
-            onDailyReviewClick={() => setDrawerOpen(true)}
-          />
-          
-          {/* Main Content - Two Column Layout */}
-          <main className="flex-1 bg-gray-50 dark:bg-gray-900 h-full overflow-hidden flex gap-4 px-4 py-4">
+    <main className="flex-1 bg-gray-50 dark:bg-gray-900 h-full overflow-hidden flex gap-4 px-4 py-4 lg:ml-64">
             {/* Left Column - Prompt + Input */}
             <div className="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg flex flex-col overflow-hidden h-full">
               {/* Header */}
@@ -267,7 +253,6 @@ export default function WorkReview() {
                 </div>
               )}
             </div>
-          </main>
 
           {/* Right Sidebar - Work Item Checklist */}
           <aside className="w-96 h-full overflow-y-auto bg-gray-50 dark:bg-gray-900 p-4">
@@ -322,11 +307,9 @@ export default function WorkReview() {
                     );
                   })}
                 </ul>
-              </div>
-            </div>
-          </aside>
+          </div>
         </div>
-      </div>
-    </>
+      </aside>
+    </main>
   );
 }
