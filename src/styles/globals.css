@@ -126,3 +126,19 @@
   --radius-base: 12px;
   --radius-lg: 16px;
 }
+
+html,
+body {
+  @apply bg-gray-50 dark:bg-gray-900;
+  overscroll-behavior: none;
+}
+
+/* Hide scrollbars while maintaining scroll functionality */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Opera */
+}

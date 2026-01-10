@@ -13,7 +13,7 @@ export default function LeftSidebar({ onRetrospectiveClick, onDailyReviewClick }
     const [gettingStartedOpen, setGettingStartedOpen] = useState(false);
     const [apiDocsOpen, setApiDocsOpen] = useState(false);
     return (
-        <aside id="sidebar-double" className="flex z-40 h-full w-64 transition-transform -translate-x-full lg:translate-x-0 bg-white dark:bg-gray-900" aria-label="Sidebar">
+        <aside id="sidebar-double" className="hidden lg:flex fixed left-0 top-4 z-40 h-[calc(100vh-1rem)] w-64 bg-white dark:bg-gray-900" aria-label="Sidebar">
             <div className="flex flex-col w-full h-full overflow-y-auto">
                 {/* Header/Logo Area */}
                 <div className="flex items-center justify-between px-6 py-5">

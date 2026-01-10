@@ -1,5 +1,6 @@
 import { Badge, Avatar } from "flowbite-react";
 import { useState } from "react";
+import mockWorkData from "@/data/mockWorkData.json";
 
 // Types based on your data structure
 interface Project {
@@ -97,140 +98,12 @@ interface DailyUpdate {
   context?: string;
   linked_tickets: string[];
 }
-
-
 interface WorkReviewData {
   tickets: Ticket[];
   standup_entries: StandupEntry[];
   teams: any[];
   people: any[];
 }
-
-// Mock data based on your structure
-export const mockData: WorkReviewData = {
-  "tickets": [
-    {
-      "project": {
-        "key": "PLATFORM",
-        "name": "Platform Services"
-      },
-      "team": {
-        "key": "API",
-        "name": "API Team"
-      },
-      "issue_key": "ABC-123",
-      "epic_key": "EPIC-42",
-      "title": "Add authentication endpoint for mobile clients",
-      "description": "Original problem statement or requirement",
-      "intent_frozen_at": "2025-01-15T14:32:00Z",
-      "assignee": "Kate Martinez",
-      "status_category": "In Progress",
-      "priority": "High",
-      "due_date": "2025-01-30",
-      "comments": [
-        {
-          "id": "cmt-001",
-          "author": "Kate Martinez",
-          "created_at": "2025-01-16T10:12:00Z",
-          "body": "Clarified edge case for unauthenticated users.",
-          "type": "context"
-        },
-        {
-          "id": "cmt-002",
-          "author": "Kate Martinez",
-          "created_at": "2025-01-17T14:45:00Z",
-          "body": "Decision: reuse existing token refresh logic.",
-          "type": "decision"
-        }
-      ],
-      "git": {
-        "branches": [
-          {
-            "name": "feature/ABC-123-add-endpoint",
-            "repo": "api-service",
-            "base": "main",
-            "last_commit_at": "2025-01-18T21:04:11Z",
-            "diff_summary": {
-              "files_changed": 12,
-              "insertions": 340,
-              "deletions": 97
-            },
-            "pr": {
-              "id": 456,
-              "state": "open",
-              "url": "https://github.com/org/api-service/pull/456",
-              "comments": [
-                {
-                  "id": "prc-101",
-                  "author": "Brandon",
-                  "created_at": "2025-01-18T09:30:00Z",
-                  "body": "Can we reuse the existing validator here?",
-                  "type": "review"
-                },
-                {
-                  "id": "prc-102",
-                  "author": "Kate Martinez",
-                  "created_at": "2025-01-18T11:02:00Z",
-                  "body": "Updated to reuse shared validator.",
-                  "type": "resolution"
-                }
-              ]
-            }
-          }
-        ],
-        "linked_pr_ids": [456]
-      },
-      "linked_tickets": [
-        {
-          "issue_key": "ABC-100",
-          "type": "parent"
-        },
-        {
-          "issue_key": "ABC-140",
-          "type": "blocks"
-        }
-      ]
-    }
-  ],
-  "standup_entries": [
-    {
-      "id": "su-2025-01-18-kate",
-      "date": "2025-12-30",
-      "user": "Kate Martinez",
-      "yesterday": "Went over some new wireframes with Brandon\nHad a sync up meeting with Daniel for the new marketing campaigns",
-      "today": "Check current product metrics and re-create all dashboards\nBrainstorming meeting on how to boost internal user growth",
-      "blockers": "When you can @brandon let's talk about the status of the new landing pages",
-      "team_comment": "",
-      "linked_tickets": [
-        {
-          "issue_key": "ABC-123"
-        },
-        {
-          "issue_key": "ABC-140"
-        }
-      ]
-    },
-    {
-      "id": "su-2025-01-19-kate",
-      "date": "2025-01-19",
-      "user": "Kate Martinez",
-      "yesterday": "Reviewed PRs and fixed CI failure",
-      "today": "Finish endpoint tests and request review",
-      "blockers": "Waiting on QA environment to stop failing deployments",
-      "team_comment": "If env is still flaky by noon, I'll switch to local contract tests",
-      "linked_tickets": [
-        {
-          "issue_key": "ABC-123"
-        },
-        {
-          "issue_key": "ABC-124"
-        }
-      ]
-    }
-  ],
-  "teams": [],
-  "people": []
-};
 
 // Mock previous updates data
 const mockPreviousUpdates: DailyUpdate[] = [
@@ -313,7 +186,7 @@ interface Feed5Props {
 }
 
 export default function Feed5({ selectedTeam }: Feed5Props) {
-  const data = mockData;
+  const data = mockWorkData as WorkReviewData;
   // Filter tickets by selected team when provided
   const tickets = selectedTeam
     ? data.tickets.filter(t => t.team?.key === selectedTeam || t.team?.name === selectedTeam)
@@ -340,8 +213,7 @@ export default function Feed5({ selectedTeam }: Feed5Props) {
   };
   
   return (
-    <div className="mt-2 h-full px-4 py-4 bg-gray-100 dark:bg-gray-900">
-      <div className="max-w-4xl mx-auto space-y-3">
+    <div className="w-full space-y-4 sm:space-y-6">
 
         {/* Ticket Cards */}
   {tickets.map((ticket) => {
@@ -350,7 +222,7 @@ export default function Feed5({ selectedTeam }: Feed5Props) {
           return (
             <div 
               key={ticket.issue_key}
-              className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
+              className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 sm:p-4 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
             >
               {/* Header: Avatar, Name, Time */}
               <div className="flex items-start gap-3">
@@ -397,16 +269,16 @@ export default function Feed5({ selectedTeam }: Feed5Props) {
               </div>
 
               {/* Content: Title and Description */}
-              <div className="mt-3 ml-[52px]">
+              <div className="mt-3 ml-0 sm:ml-[52px] min-w-0">
                 {/* Code Information */}
                 {ticket.git.branches.length > 0 && (
-                  <div className="mb-3 flex flex-wrap items-center gap-3 text-xs">
+                  <div className="mb-3 flex flex-wrap items-center gap-3 text-xs overflow-hidden">
                     {/* Branch Info */}
-                    <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
-                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                    <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 min-w-0">
+                      <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M7.707 3.293a1 1 0 010 1.414L5.414 7H11a7 7 0 017 7v2a1 1 0 11-2 0v-2a5 5 0 00-5-5H5.414l2.293 2.293a1 1 0 11-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
-                      <span className="font-mono">{ticket.git.branches[0].name}</span>
+                      <span className="font-mono truncate">{ticket.git.branches[0].name}</span>
                     </div>
 
                     {/* File Stats */}
@@ -755,7 +627,6 @@ export default function Feed5({ selectedTeam }: Feed5Props) {
           );
         })}
         
-      </div>
     </div>
   );
 }

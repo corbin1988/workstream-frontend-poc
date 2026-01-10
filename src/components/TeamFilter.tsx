@@ -18,7 +18,7 @@ export default function TeamFilter({ teams, selected, onSelect }: TeamFilterProp
   // generate a simple abstract SVG avatar (not a person) as a data URL
   const hash = (s: string) => s.split('').reduce((a, c) => ((a << 5) - a) + c.charCodeAt(0), 0);
   const svgAvatarDataUrl = (text: string, size = 64, seed = ''): string => {
-    const initials = text.split(' ').map(p => p[0]).join('').slice(0,2).toUpperCase();
+    const initials = text.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
     const h = Math.abs(hash(seed || text)) % 360;
     const bg = `hsl(${h} 60% 30%)`;
     const accent = `hsl(${(h + 40) % 360} 70% 45%)`;
@@ -43,36 +43,39 @@ export default function TeamFilter({ teams, selected, onSelect }: TeamFilterProp
   };
 
   return (
-    <div className="px-4 py-1 bg-transparent">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex gap-2 overflow-x-auto py-1 items-center">
-          {teams.map(team => {
-            const isSelected = selected === team.key || selected === team.name;
-            return (
-              <button
-                key={team.key}
-                onClick={() => onSelect(isSelected ? null : team.key)}
-                className={`flex items-center gap-3 min-w-[160px] px-4 py-2 rounded-full border transition-colors focus:outline-none ${isSelected ? 'bg-blue-600 border-blue-600 text-white shadow-md' : 'bg-gray-800/60 border-gray-700 text-gray-200 hover:bg-gray-700/60'}`}
-              >
-                <Avatar
-                  alt={team.name}
-                  img={team.avatarUrl || svgAvatarDataUrl(team.name, 64, team.key)}
-                  rounded
-                  size="sm"
-                  className="flex-shrink-0 ring-1 ring-white/5 bg-transparent"
-                />
-
-                <div className="text-left">
-                  <div className="font-medium text-sm truncate">{team.name}</div>
-                  {typeof team.count === 'number' && (
-                    <div className={`text-xs ${isSelected ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'}`}>{team.count} item{team.count !== 1 ? 's' : ''}</div>
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
+    <div className="w-full min-w-0 overflow-x-auto overflow-y-hidden py-1 px-1">
+      <div className="flex flex-nowrap items-center gap-2 w-max">
+        {teams.map(team => {
+          const isSelected = selected === team.key || selected === team.name;
+          return (
+            <button
+              key={team.key}
+              onClick={() => onSelect(isSelected ? null : team.key)}
+              className={`flex items-center gap-3 min-w-[160px] px-4 py-2 rounded-full border transition-colors focus:outline-none ${isSelected
+                  ? "bg-blue-600 border-blue-600 text-white shadow-md"
+                  : "bg-gray-800/60 border-gray-700 text-gray-200 hover:bg-gray-700/60"
+                }`}
+            >
+              <Avatar
+                alt={team.name}
+                img={team.avatarUrl || svgAvatarDataUrl(team.name, 64, team.key)}
+                rounded
+                size="sm"
+                className="flex-shrink-0 ring-1 ring-white/5 bg-transparent"
+              />
+              <div className="min-w-0 text-left">
+                <div className="font-medium text-sm truncate">{team.name}</div>
+                {typeof team.count === "number" && (
+                  <div className={`text-xs ${isSelected ? "text-blue-100" : "text-gray-500 dark:text-gray-400"}`}>
+                    {team.count} item{team.count !== 1 ? "s" : ""}
+                  </div>
+                )}
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
+
 }

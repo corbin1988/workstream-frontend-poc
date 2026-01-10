@@ -1,0 +1,484 @@
+{
+  "tickets": [
+    {
+      "project": {
+        "key": "PLATFORM",
+        "name": "Platform Services"
+      },
+      "team": {
+        "key": "API",
+        "name": "API Team"
+      },
+      "issue_key": "ABC-123",
+      "epic_key": "EPIC-42",
+      "title": "Add authentication endpoint for mobile clients",
+      "description": "Original problem statement or requirement",
+      "intent_frozen_at": "2025-01-15T14:32:00Z",
+      "assignee": "Kate Martinez",
+      "status_category": "In Progress",
+      "priority": "High",
+      "due_date": "2025-01-30",
+      "comments": [
+        {
+          "id": "cmt-001",
+          "author": "Kate Martinez",
+          "created_at": "2025-01-16T10:12:00Z",
+          "body": "Clarified edge case for unauthenticated users.",
+          "type": "context"
+        },
+        {
+          "id": "cmt-002",
+          "author": "Kate Martinez",
+          "created_at": "2025-01-17T14:45:00Z",
+          "body": "Decision: reuse existing token refresh logic.",
+          "type": "decision"
+        }
+      ],
+      "git": {
+        "branches": [
+          {
+            "name": "feature/ABC-123-add-endpoint",
+            "repo": "api-service",
+            "base": "main",
+            "last_commit_at": "2025-01-18T21:04:11Z",
+            "diff_summary": {
+              "files_changed": 12,
+              "insertions": 340,
+              "deletions": 97
+            },
+            "pr": {
+              "id": 456,
+              "state": "open",
+              "url": "https://github.com/org/api-service/pull/456",
+              "comments": [
+                {
+                  "id": "prc-101",
+                  "author": "Brandon",
+                  "created_at": "2025-01-18T09:30:00Z",
+                  "body": "Can we reuse the existing validator here?",
+                  "type": "review"
+                },
+                {
+                  "id": "prc-102",
+                  "author": "Kate Martinez",
+                  "created_at": "2025-01-18T11:02:00Z",
+                  "body": "Updated to reuse shared validator.",
+                  "type": "resolution"
+                }
+              ]
+            }
+          }
+        ],
+        "linked_pr_ids": [456]
+      },
+      "linked_tickets": [
+        {
+          "issue_key": "ABC-100",
+          "type": "parent"
+        },
+        {
+          "issue_key": "ABC-140",
+          "type": "blocks"
+        }
+      ]
+    },
+    {
+      "project": {
+        "key": "INFRA",
+        "name": "Infrastructure"
+      },
+      "team": {
+        "key": "INFRA",
+        "name": "Infrastructure Team"
+      },
+      "issue_key": "INFRA-245",
+      "epic_key": "EPIC-55",
+      "title": "Migrate database to PostgreSQL 15",
+      "description": "Upgrade from PostgreSQL 13 to 15 for better performance",
+      "intent_frozen_at": "2025-01-16T09:15:00Z",
+      "assignee": "Marcus Chen",
+      "status_category": "In Progress",
+      "priority": "High",
+      "due_date": "2025-02-05",
+      "comments": [
+        {
+          "id": "cmt-003",
+          "author": "Marcus Chen",
+          "created_at": "2025-01-17T11:20:00Z",
+          "body": "Testing migration scripts on staging environment",
+          "type": "context"
+        }
+      ],
+      "git": {
+        "branches": [
+          {
+            "name": "infra/INFRA-245-pg-upgrade",
+            "repo": "infrastructure",
+            "base": "main",
+            "last_commit_at": "2025-01-17T18:30:00Z",
+            "diff_summary": {
+              "files_changed": 8,
+              "insertions": 215,
+              "deletions": 42
+            },
+            "pr": {
+              "id": 789,
+              "state": "open",
+              "url": "https://github.com/org/infrastructure/pull/789",
+              "comments": []
+            }
+          }
+        ],
+        "linked_pr_ids": [789]
+      },
+      "linked_tickets": []
+    },
+    {
+      "project": {
+        "key": "DATA",
+        "name": "Data Engineering"
+      },
+      "team": {
+        "key": "DATA",
+        "name": "Data Team"
+      },
+      "issue_key": "DATA-789",
+      "epic_key": "EPIC-60",
+      "title": "Build ETL pipeline for customer analytics",
+      "description": "New pipeline to process customer behavior data",
+      "intent_frozen_at": "2025-01-14T13:45:00Z",
+      "assignee": "Sarah Johnson",
+      "status_category": "Done",
+      "priority": "Medium",
+      "due_date": "2025-01-25",
+      "comments": [
+        {
+          "id": "cmt-004",
+          "author": "Sarah Johnson",
+          "created_at": "2025-01-15T14:00:00Z",
+          "body": "Pipeline successfully deployed to production",
+          "type": "context"
+        }
+      ],
+      "git": {
+        "branches": [
+          {
+            "name": "data/DATA-789-analytics-etl",
+            "repo": "data-pipelines",
+            "base": "main",
+            "last_commit_at": "2025-01-15T16:22:00Z",
+            "diff_summary": {
+              "files_changed": 18,
+              "insertions": 892,
+              "deletions": 123
+            },
+            "pr": {
+              "id": 321,
+              "state": "merged",
+              "url": "https://github.com/org/data-pipelines/pull/321",
+              "comments": []
+            }
+          }
+        ],
+        "linked_pr_ids": [321]
+      },
+      "linked_tickets": []
+    },
+    {
+      "project": {
+        "key": "PLATFORM",
+        "name": "Platform Services"
+      },
+      "team": {
+        "key": "API",
+        "name": "API Team"
+      },
+      "issue_key": "ABC-156",
+      "epic_key": "EPIC-42",
+      "title": "Implement rate limiting for API endpoints",
+      "description": "Add rate limiting to prevent API abuse",
+      "intent_frozen_at": "2025-01-17T10:30:00Z",
+      "assignee": "Alex Rivera",
+      "status_category": "In Progress",
+      "priority": "High",
+      "due_date": "2025-01-28",
+      "comments": [
+        {
+          "id": "cmt-005",
+          "author": "Alex Rivera",
+          "created_at": "2025-01-17T15:20:00Z",
+          "body": "Researching Redis vs in-memory solutions",
+          "type": "context"
+        },
+        {
+          "id": "cmt-006",
+          "author": "Alex Rivera",
+          "created_at": "2025-01-18T09:10:00Z",
+          "body": "Decision: Using Redis for distributed rate limiting",
+          "type": "decision"
+        }
+      ],
+      "git": {
+        "branches": [
+          {
+            "name": "feature/ABC-156-rate-limiting",
+            "repo": "api-service",
+            "base": "main",
+            "last_commit_at": "2025-01-18T14:15:00Z",
+            "diff_summary": {
+              "files_changed": 6,
+              "insertions": 185,
+              "deletions": 28
+            }
+          }
+        ],
+        "linked_pr_ids": []
+      },
+      "linked_tickets": []
+    },
+    {
+      "project": {
+        "key": "INFRA",
+        "name": "Infrastructure"
+      },
+      "team": {
+        "key": "INFRA",
+        "name": "Infrastructure Team"
+      },
+      "issue_key": "INFRA-301",
+      "epic_key": "EPIC-58",
+      "title": "Setup automated backup system",
+      "description": "Implement automated daily backups for all databases",
+      "intent_frozen_at": "2025-01-13T08:00:00Z",
+      "assignee": "James Wilson",
+      "status_category": "In Progress",
+      "priority": "High",
+      "due_date": "2025-01-22",
+      "comments": [
+        {
+          "id": "cmt-007",
+          "author": "James Wilson",
+          "created_at": "2025-01-14T10:30:00Z",
+          "body": "Configured backup retention policies",
+          "type": "context"
+        }
+      ],
+      "git": {
+        "branches": [
+          {
+            "name": "infra/INFRA-301-backup-system",
+            "repo": "infrastructure",
+            "base": "main",
+            "last_commit_at": "2025-01-16T11:45:00Z",
+            "diff_summary": {
+              "files_changed": 5,
+              "insertions": 312,
+              "deletions": 45
+            },
+            "pr": {
+              "id": 890,
+              "state": "open",
+              "url": "https://github.com/org/infrastructure/pull/890",
+              "comments": [
+                {
+                  "id": "prc-201",
+                  "author": "Marcus Chen",
+                  "created_at": "2025-01-16T13:00:00Z",
+                  "body": "Should we add monitoring alerts?",
+                  "type": "review"
+                }
+              ]
+            }
+          }
+        ],
+        "linked_pr_ids": [890]
+      },
+      "linked_tickets": []
+    },
+    {
+      "project": {
+        "key": "DATA",
+        "name": "Data Engineering"
+      },
+      "team": {
+        "key": "DATA",
+        "name": "Data Team"
+      },
+      "issue_key": "DATA-812",
+      "epic_key": "EPIC-61",
+      "title": "Optimize query performance for reporting dashboard",
+      "description": "Dashboard queries taking too long, need optimization",
+      "intent_frozen_at": "2025-01-15T14:20:00Z",
+      "assignee": "Emily Rodriguez",
+      "status_category": "In Progress",
+      "priority": "Medium",
+      "due_date": "2025-01-29",
+      "comments": [
+        {
+          "id": "cmt-008",
+          "author": "Emily Rodriguez",
+          "created_at": "2025-01-16T09:30:00Z",
+          "body": "Added indexes on frequently queried columns",
+          "type": "context"
+        }
+      ],
+      "git": {
+        "branches": [
+          {
+            "name": "data/DATA-812-query-optimization",
+            "repo": "data-pipelines",
+            "base": "main",
+            "last_commit_at": "2025-01-17T10:05:00Z",
+            "diff_summary": {
+              "files_changed": 4,
+              "insertions": 127,
+              "deletions": 89
+            }
+          }
+        ],
+        "linked_pr_ids": []
+      },
+      "linked_tickets": []
+    },
+    {
+      "project": {
+        "key": "PLATFORM",
+        "name": "Platform Services"
+      },
+      "team": {
+        "key": "API",
+        "name": "API Team"
+      },
+      "issue_key": "ABC-178",
+      "epic_key": "EPIC-43",
+      "title": "Add GraphQL subscription support",
+      "description": "Implement real-time updates via GraphQL subscriptions",
+      "intent_frozen_at": "2025-01-16T11:00:00Z",
+      "assignee": "Brandon Lee",
+      "status_category": "In Progress",
+      "priority": "Medium",
+      "due_date": "2025-02-01",
+      "comments": [
+        {
+          "id": "cmt-009",
+          "author": "Brandon Lee",
+          "created_at": "2025-01-17T08:45:00Z",
+          "body": "Setting up WebSocket infrastructure",
+          "type": "context"
+        }
+      ],
+      "git": {
+        "branches": [
+          {
+            "name": "feature/ABC-178-graphql-subscriptions",
+            "repo": "api-service",
+            "base": "main",
+            "last_commit_at": "2025-01-18T16:30:00Z",
+            "diff_summary": {
+              "files_changed": 15,
+              "insertions": 524,
+              "deletions": 78
+            },
+            "pr": {
+              "id": 457,
+              "state": "open",
+              "url": "https://github.com/org/api-service/pull/457",
+              "comments": []
+            }
+          }
+        ],
+        "linked_pr_ids": [457]
+      },
+      "linked_tickets": []
+    },
+    {
+      "project": {
+        "key": "INFRA",
+        "name": "Infrastructure"
+      },
+      "team": {
+        "key": "INFRA",
+        "name": "Infrastructure Team"
+      },
+      "issue_key": "INFRA-334",
+      "epic_key": "EPIC-59",
+      "title": "Configure Kubernetes auto-scaling",
+      "description": "Setup HPA for production workloads",
+      "intent_frozen_at": "2025-01-14T16:30:00Z",
+      "assignee": "David Kim",
+      "status_category": "Done",
+      "priority": "High",
+      "due_date": "2025-01-20",
+      "comments": [
+        {
+          "id": "cmt-010",
+          "author": "David Kim",
+          "created_at": "2025-01-15T11:00:00Z",
+          "body": "Successfully tested auto-scaling in staging",
+          "type": "context"
+        }
+      ],
+      "git": {
+        "branches": [
+          {
+            "name": "infra/INFRA-334-k8s-autoscaling",
+            "repo": "infrastructure",
+            "base": "main",
+            "last_commit_at": "2025-01-15T14:50:00Z",
+            "diff_summary": {
+              "files_changed": 9,
+              "insertions": 267,
+              "deletions": 54
+            },
+            "pr": {
+              "id": 891,
+              "state": "merged",
+              "url": "https://github.com/org/infrastructure/pull/891",
+              "comments": []
+            }
+          }
+        ],
+        "linked_pr_ids": [891]
+      },
+      "linked_tickets": []
+    }
+  ],
+  "standup_entries": [
+    {
+      "id": "su-2025-01-18-kate",
+      "date": "2025-12-30",
+      "user": "Kate Martinez",
+      "yesterday": "Went over some new wireframes with Brandon\nHad a sync up meeting with Daniel for the new marketing campaigns",
+      "today": "Check current product metrics and re-create all dashboards\nBrainstorming meeting on how to boost internal user growth",
+      "blockers": "When you can @brandon let's talk about the status of the new landing pages",
+      "team_comment": "",
+      "linked_tickets": [
+        {
+          "issue_key": "ABC-123"
+        },
+        {
+          "issue_key": "ABC-140"
+        }
+      ]
+    },
+    {
+      "id": "su-2025-01-19-kate",
+      "date": "2025-01-19",
+      "user": "Kate Martinez",
+      "yesterday": "Reviewed PRs and fixed CI failure",
+      "today": "Finish endpoint tests and request review",
+      "blockers": "Waiting on QA environment to stop failing deployments",
+      "team_comment": "If env is still flaky by noon, I'll switch to local contract tests",
+      "linked_tickets": [
+        {
+          "issue_key": "ABC-123"
+        },
+        {
+          "issue_key": "ABC-124"
+        }
+      ]
+    }
+  ],
+  "teams": [],
+  "people": []
+}

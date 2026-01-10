@@ -2,7 +2,7 @@ import { Card, TextInput, Badge, Avatar, Button } from "flowbite-react";
 
 export default function RightSidebar() {
   return (
-    <aside className="w-96 h-full overflow-y-auto p-4 bg-gray-50 dark:bg-gray-900 hidden xl:block">
+    <aside className="hidden xl:block fixed right-0 top-4 w-96 h-[calc(100vh-1rem)] overflow-y-auto p-4 bg-gray-50 dark:bg-gray-900">
       <div className="space-y-4">
         {/* Search Bar */}
         <div className="sticky top-0 bg-gray-50 dark:bg-gray-900 pb-4 z-10">
