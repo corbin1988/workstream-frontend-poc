@@ -43,7 +43,7 @@ export default function TeamFilter({ teams, selected, onSelect }: TeamFilterProp
   };
 
   return (
-    <div className="w-full min-w-0 overflow-x-auto overflow-y-hidden py-1 px-1">
+    <div className="w-full min-w-0 overflow-x-auto overflow-y-hidden py-4 px-1">
       <div className="flex flex-nowrap items-center gap-2 w-max">
         {teams.map(team => {
           const isSelected = selected === team.key || selected === team.name;

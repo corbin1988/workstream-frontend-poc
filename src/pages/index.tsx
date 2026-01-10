@@ -50,7 +50,7 @@ export default function Home() {
             onDailyReviewClick={() => setWorkDrawerOpen(true)}
           />
 
-          <main className="flex-1 min-w-0 bg-gray-50 dark:bg-gray-900 lg:ml-64 xl:mr-96 px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-4 space-y-2 pb-20 overscroll-none max-w-4xl lg:max-w-none">
+          <main className="flex-1 min-w-0 bg-gray-50 dark:bg-gray-900 lg:ml-64 xl:mr-96 px-2 sm:px-4 md:px-6 lg:px-8 pt-4 pb-20 space-y-2 overscroll-none max-w-4xl lg:max-w-none">
             <TeamFilter teams={teams} selected={selectedTeam} onSelect={handleSelect} />
             <Feed5 selectedTeam={selectedTeam} />
           </main>
