@@ -112,9 +112,10 @@ export default function WorkReview() {
   };
 
   return (
-    <main className="flex-1 bg-gray-50 dark:bg-gray-900 h-full overflow-hidden flex gap-4 px-4 py-4 lg:ml-64">
+    <main className="flex-1 bg-gray-50 dark:bg-gray-900 min-h-screen overflow-hidden flex gap-4 lg:ml-64 px-4 py-4 pb-20 lg:pb-4">
             {/* Left Column - Prompt + Input */}
-            <div className="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg flex flex-col overflow-hidden h-full">
+            <div className="flex-1 bg-gray-50 dark:bg-gray-900 xl:p-4 flex flex-col">
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg flex flex-col overflow-hidden flex-1">
               {/* Header */}
               <div className="border-b border-gray-200 dark:border-gray-700 p-4">
                 <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -253,10 +254,11 @@ export default function WorkReview() {
                 </div>
               )}
             </div>
+          </div>
 
           {/* Right Sidebar - Work Item Checklist */}
-          <aside className="w-96 h-full overflow-y-auto bg-gray-50 dark:bg-gray-900 p-4">
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg flex flex-col overflow-hidden h-full">
+          <aside className="hidden xl:flex w-96 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-4">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg flex flex-col overflow-hidden">
               <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Work Items
