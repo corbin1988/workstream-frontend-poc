@@ -60,7 +60,7 @@ export default function Chat() {
   };
 
   return (
-    <main className="flex-1 bg-white dark:bg-gray-800 h-full rounded-lg shadow-lg flex flex-col lg:ml-64 px-4 py-4">
+    <main className="flex-1 bg-white dark:bg-gray-800 min-h-screen rounded-lg shadow-lg flex flex-col lg:ml-64 pl-4 pr-4 lg:pr-6 py-4 pb-20 lg:pb-4">
             {/* Chat Header */}
             <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
               <div className="flex items-center gap-3">
