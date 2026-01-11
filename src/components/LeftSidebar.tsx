@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/router";
 import DarkModeToggle from "./DarkModeToggle";
 import { Avatar, Button } from "flowbite-react";
 
@@ -8,10 +10,20 @@ interface LeftSidebarProps {
 }
 
 export default function LeftSidebar({ onRetrospectiveClick, onDailyReviewClick }: LeftSidebarProps) {
-    const [chatOpen, setChatOpen] = useState(true);
-    const [documentsOpen, setDocumentsOpen] = useState(false);
+    const router = useRouter();
+    const [chatOpen, setChatOpen] = useState(router.pathname === '/chat');
+    const [documentsOpen, setDocumentsOpen] = useState(router.pathname === '/documentation');
     const [gettingStartedOpen, setGettingStartedOpen] = useState(false);
     const [apiDocsOpen, setApiDocsOpen] = useState(false);
+
+    useEffect(() => {
+        if (router.pathname === '/chat') {
+            setChatOpen(true);
+        }
+        if (router.pathname === '/documentation') {
+            setDocumentsOpen(true);
+        }
+    }, [router.pathname]);
     return (
         <aside id="sidebar-double" className="hidden lg:flex fixed left-0 top-4 z-40 h-[calc(100vh-1rem)] w-64 bg-white dark:bg-gray-900" aria-label="Sidebar">
             <div className="flex flex-col w-full h-full overflow-y-auto">
@@ -48,12 +60,16 @@ export default function LeftSidebar({ onRetrospectiveClick, onDailyReviewClick }
                         <div className={`overflow-hidden transition-all duration-200 ${chatOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
                             <div className="pl-8 space-y-0.5 mt-1">
                                 {/* New Chat */}
-                                <a href="#" className="flex items-center px-6 py-2.5 text-base font-normal text-gray-600 dark:text-gray-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                                <Link href="/chat" className={`flex items-center px-6 py-2.5 text-base ${
+                                    router.pathname === '/chat'
+                                        ? 'font-semibold text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800'
+                                        : 'font-normal text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                } rounded-full transition-colors`}>
                                     <svg className="w-5 h-5 mr-4 text-gray-500 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                     </svg>
                                     New Chat
-                                </a>
+                                </Link>
                             </div>
                         </div>
                     </div>
@@ -66,13 +82,17 @@ export default function LeftSidebar({ onRetrospectiveClick, onDailyReviewClick }
                         Activity Feed
                     </a>
 
-                    {/* Work Review - Active */}
-                    <a href="#" className="flex items-center px-6 py-3 text-base font-bold text-gray-900 dark:text-gray-100 rounded-full bg-gray-100 dark:bg-gray-800">
+                    {/* Work Review */}
+                    <Link href="/" className={`flex items-center px-6 py-3 text-base ${
+                        router.pathname === '/' 
+                            ? 'font-bold text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800' 
+                            : 'font-normal text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    } rounded-full transition-colors`}>
                         <svg className="w-6 h-6 mr-5 text-gray-900 dark:text-gray-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                         </svg>
                         Work Review
-                    </a>
+                    </Link>
 
                     {/* Daily Review */}
                     <button onClick={onDailyReviewClick} className="flex items-center w-full px-6 py-3 text-base font-normal text-gray-900 dark:text-gray-100 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
@@ -87,7 +107,7 @@ export default function LeftSidebar({ onRetrospectiveClick, onDailyReviewClick }
                         <svg className="w-6 h-6 mr-5 text-gray-900 dark:text-gray-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                         </svg>
-                        Summary Archive
+                        Retro Archive
                     </a>
 
                     {/* Documents - Expandable */}
@@ -109,6 +129,19 @@ export default function LeftSidebar({ onRetrospectiveClick, onDailyReviewClick }
 
                         {/* Documents Submenu */}
                         <div className={`overflow-hidden transition-all duration-200 ${documentsOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+                            <div className="pl-8 space-y-0.5 mt-1">
+                                {/* New Document */}
+                                <Link href="/documentation" className={`flex items-center px-4 py-2.5 text-base ${
+                                    router.pathname === '/documentation'
+                                        ? 'font-semibold text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800'
+                                        : 'font-normal text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                } rounded-full transition-colors whitespace-nowrap`}>
+                                    <svg className="w-5 h-5 mr-3 flex-shrink-0 text-gray-500 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    New Document
+                                </Link>
+                            </div>
                             <div className="pl-6 space-y-0.5 mt-1">
                                 {/* Getting Started - Expandable */}
                                 <div>

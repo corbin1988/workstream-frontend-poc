@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Link from 'next/link';
 
 interface WorkItem {
   key: string;
@@ -633,12 +634,13 @@ export default function WorkDrawer2({
               >
                 Cancel
               </button>
-              <button
-                type="submit"
+              <Link
+                href="/workreview"
+                onClick={onClose}
                 className="flex-1 px-5 py-2.5 text-sm font-medium text-center text-white rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
               >
-                Submit review
-              </button>
+                Start review
+              </Link>
             </div>
           </div>
         </div>
