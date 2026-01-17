@@ -11,7 +11,7 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
       {/* Overlay backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/40 z-40 transition-opacity backdrop-blur-sm"
+          className="fixed inset-0 bg-black/40 z-[60] transition-opacity backdrop-blur-sm"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -19,7 +19,7 @@ export default function Drawer({ isOpen, onClose }: DrawerProps) {
 
       {/* drawer component */}
       <form action="#" method="get" id="drawer-example"
-        className={`fixed top-0 left-0 z-50 w-full h-screen max-w-lg p-6 overflow-y-auto transition-transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} bg-white dark:bg-gray-800`}
+        className={`fixed top-0 left-0 z-[70] w-full h-screen max-w-lg p-6 overflow-y-auto transition-transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} bg-white dark:bg-gray-800`}
         tabIndex={-1} aria-labelledby="drawer-label">
         <div className="flex flex-col h-full">
           {/* Header */}

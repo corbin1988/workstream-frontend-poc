@@ -18,18 +18,23 @@ export default function MainLayout({ children }: MainLayoutProps) {
       <Drawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
       <WorkDrawer3 isOpen={workDrawerOpen} onClose={() => setWorkDrawerOpen(false)} />
 
-      <div className="bg-gray-50 dark:bg-gray-900 antialiased min-h-screen overflow-y-auto overscroll-none">
+      <div className="bg-gray-50 dark:bg-gray-900 antialiased min-h-screen">
         <div className="flex min-h-screen">
           <LeftSidebar
             onRetrospectiveClick={() => setDrawerOpen(true)}
             onDailyReviewClick={() => setWorkDrawerOpen(true)}
           />
 
-          {children}
+          <main className="flex-1 overflow-y-auto">
+            {children}
+          </main>
         </div>
         
         <div className="lg:hidden">
-          <BottomNavigation2 />
+          <BottomNavigation2 
+            onRetrospectiveClick={() => setDrawerOpen(true)}
+            onDailyReviewClick={() => setWorkDrawerOpen(true)}
+          />
         </div>
       </div>
     </>

@@ -1,4 +1,6 @@
 import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/router";
 import { Avatar } from "flowbite-react";
 
 interface BottomNavigation2Props {
@@ -14,9 +16,9 @@ const sheet = {
       label: "Chat",
       icon: "message-circle",
       href: "/chat",
-      create: { label: "New Chat", icon: "plus", href: "/chat/new" },
+      create: { label: "New Chat", icon: "plus", href: "/chat" },
       items: [
-        { key: "new-chat", label: "New Chat", icon: "message-circle", href: "/chat/new" },
+        { key: "new-chat", label: "New Chat", icon: "message-circle", href: "/chat" },
         { key: "recent", label: "Recent Chats", icon: "history", href: "/chat" },
         { key: "pinned", label: "Pinned", icon: "pin", href: "/chat?filter=pinned" },
       ],
@@ -26,10 +28,10 @@ const sheet = {
       key: "documents",
       label: "Documents",
       icon: "file-text",
-      href: "/docs",
-      create: { label: "New Doc", icon: "plus", href: "/docs/new" },
+      href: "/documentation",
+      create: { label: "New Doc", icon: "plus", href: "/documentation" },
       items: [
-        { key: "browse", label: "Browse", icon: "folder", href: "/docs" },
+        { key: "browse", label: "Browse", icon: "folder", href: "/documentation" },
         { key: "recent", label: "Recent", icon: "clock", href: "/docs?sort=updated" },
         { key: "drafts", label: "Drafts", icon: "edit-3", href: "/docs?status=draft" },
         { key: "approved", label: "Approved", icon: "check-circle", href: "/docs?status=approved" },
@@ -67,6 +69,7 @@ const sheet = {
 };
 
 export default function BottomNavigation2({ onRetrospectiveClick, onDailyReviewClick }: BottomNavigation2Props) {
+    const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const [selectedTile, setSelectedTile] = useState(sheet.tiles[0]);
     const handleClose = () => setIsOpen(false);
@@ -136,12 +139,18 @@ export default function BottomNavigation2({ onRetrospectiveClick, onDailyReviewC
         <>
         <div className="fixed bottom-0 left-0 z-50 w-full h-16 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-600 lg:hidden">
             <div className="grid h-full max-w-lg grid-cols-5 mx-auto font-medium">
-                <button 
-                    type="button" 
-                    className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-100 dark:hover:bg-gray-700 group"
+                <Link
+                    href="/"
+                    className={`inline-flex flex-col items-center justify-center px-5 hover:bg-gray-100 dark:hover:bg-gray-700 group ${
+                        router.pathname === '/' ? 'bg-gray-100 dark:bg-gray-700' : ''
+                    }`}
                 >
                     <svg 
-                        className="w-6 h-6 mb-1 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" 
+                        className={`w-6 h-6 mb-1 ${
+                            router.pathname === '/'
+                                ? 'text-blue-600 dark:text-blue-500'
+                                : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500'
+                        }`}
                         aria-hidden="true" 
                         xmlns="http://www.w3.org/2000/svg" 
                         width="24" 
@@ -157,8 +166,12 @@ export default function BottomNavigation2({ onRetrospectiveClick, onDailyReviewC
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
                         />
                     </svg>
-                    <span className="text-sm text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Review</span>
-                </button>
+                    <span className={`text-sm ${
+                        router.pathname === '/'
+                            ? 'text-blue-600 dark:text-blue-500 font-semibold'
+                            : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500'
+                    }`}>Review</span>
+                </Link>
                 <button 
                     type="button" 
                     className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-100 dark:hover:bg-gray-700 group"
@@ -206,12 +219,19 @@ export default function BottomNavigation2({ onRetrospectiveClick, onDailyReviewC
                     </svg>
                     <span className="text-sm text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Hub</span>
                 </button>
-                <button 
-                    type="button" 
-                    className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-100 dark:hover:bg-gray-700 group"
+                <button
+                    type="button"
+                    onClick={onDailyReviewClick}
+                    className={`inline-flex flex-col items-center justify-center px-5 hover:bg-gray-100 dark:hover:bg-gray-700 group ${
+                        router.pathname === '/workreview' ? 'bg-gray-100 dark:bg-gray-700' : ''
+                    }`}
                 >
                     <svg 
-                        className="w-6 h-6 mb-1 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" 
+                        className={`w-6 h-6 mb-1 ${
+                            router.pathname === '/workreview'
+                                ? 'text-blue-600 dark:text-blue-500'
+                                : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500'
+                        }`}
                         aria-hidden="true" 
                         xmlns="http://www.w3.org/2000/svg" 
                         width="24" 
@@ -227,11 +247,17 @@ export default function BottomNavigation2({ onRetrospectiveClick, onDailyReviewC
                             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                         />
                     </svg>
-                    <span className="text-sm text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Daily</span>
+                    <span className={`text-sm ${
+                        router.pathname === '/workreview'
+                            ? 'text-blue-600 dark:text-blue-500 font-semibold'
+                            : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500'
+                    }`}>Daily</span>
                 </button>
-                <button 
-                    type="button" 
-                    className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-100 dark:hover:bg-gray-700 group"
+                <Link
+                    href="/settings"
+                    className={`inline-flex flex-col items-center justify-center px-5 hover:bg-gray-100 dark:hover:bg-gray-700 group ${
+                        router.pathname === '/settings' ? 'bg-gray-100 dark:bg-gray-700' : ''
+                    }`}
                 >
                     <div className="mb-1">
                         <Avatar
@@ -240,8 +266,12 @@ export default function BottomNavigation2({ onRetrospectiveClick, onDailyReviewC
                             size="xs"
                         />
                     </div>
-                    <span className="text-sm text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Profile</span>
-                </button>
+                    <span className={`text-sm ${
+                        router.pathname === '/settings'
+                            ? 'text-blue-600 dark:text-blue-500 font-semibold'
+                            : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500'
+                    }`}>Profile</span>
+                </Link>
             </div>
         </div>
 
@@ -297,31 +327,45 @@ export default function BottomNavigation2({ onRetrospectiveClick, onDailyReviewC
                         <div className="px-4 py-4 space-y-1">
                             {/* Create Action (if exists) */}
                             {selectedTile.create && (
-                                <button 
-                                    onClick={() => {
-                                        handleClose();
-                                        window.location.href = selectedTile.create.href;
-                                    }}
-                                    className="flex items-center w-full px-4 py-3 text-left rounded-lg bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-                                >
-                                    <svg className="w-5 h-5 mr-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        {getIcon(selectedTile.create.icon)}
-                                    </svg>
-                                    <div className="flex-1">
-                                        <div className="font-semibold text-blue-600 dark:text-blue-400">{selectedTile.create.label}</div>
-                                        <div className="text-xs text-blue-500 dark:text-blue-500">Quick action</div>
-                                    </div>
-                                </button>
+                                selectedTile.key === 'retrospect-archive' ? (
+                                    <button
+                                        onClick={() => {
+                                            handleClose();
+                                            onRetrospectiveClick?.();
+                                        }}
+                                        className="flex items-center w-full px-4 py-3 text-left rounded-lg bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                                    >
+                                        <svg className="w-5 h-5 mr-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            {getIcon(selectedTile.create.icon)}
+                                        </svg>
+                                        <div className="flex-1">
+                                            <div className="font-semibold text-blue-600 dark:text-blue-400">{selectedTile.create.label}</div>
+                                            <div className="text-xs text-blue-500 dark:text-blue-500">Quick action</div>
+                                        </div>
+                                    </button>
+                                ) : (
+                                    <Link
+                                        href={selectedTile.create.href}
+                                        onClick={handleClose}
+                                        className="flex items-center w-full px-4 py-3 text-left rounded-lg bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                                    >
+                                        <svg className="w-5 h-5 mr-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            {getIcon(selectedTile.create.icon)}
+                                        </svg>
+                                        <div className="flex-1">
+                                            <div className="font-semibold text-blue-600 dark:text-blue-400">{selectedTile.create.label}</div>
+                                            <div className="text-xs text-blue-500 dark:text-blue-500">Quick action</div>
+                                        </div>
+                                    </Link>
+                                )
                             )}
 
                             {/* Regular Menu Items */}
                             {selectedTile.items.map((item) => (
-                                <button 
+                                <Link
                                     key={item.key}
-                                    onClick={() => {
-                                        handleClose();
-                                        window.location.href = item.href;
-                                    }}
+                                    href={item.href}
+                                    onClick={handleClose}
                                     className="flex items-center w-full px-4 py-3 text-left rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                                 >
                                     <svg className="w-5 h-5 mr-3 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -331,7 +375,7 @@ export default function BottomNavigation2({ onRetrospectiveClick, onDailyReviewC
                                         <div className="font-medium text-gray-900 dark:text-white">{item.label}</div>
                                         <div className="text-xs text-gray-500 dark:text-gray-400">{item.href}</div>
                                     </div>
-                                </button>
+                                </Link>
                             ))}
                         </div>
                     </div>

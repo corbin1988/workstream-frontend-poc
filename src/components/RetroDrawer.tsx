@@ -11,7 +11,7 @@ export default function RetroDrawer({ isOpen, onClose }: RetroDrawerProps) {
       {/* Overlay backdrop with retro CRT scanline effect */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/60 z-40 transition-opacity backdrop-blur-sm"
+          className="fixed inset-0 bg-black/60 z-[60] transition-opacity backdrop-blur-sm"
           style={{
             backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,0,0,.15) 0px, transparent 1px, transparent 2px, rgba(0,0,0,.15) 3px)',
           }}
@@ -25,7 +25,7 @@ export default function RetroDrawer({ isOpen, onClose }: RetroDrawerProps) {
         action="#" 
         method="get" 
         id="retro-drawer"
-        className={`fixed top-0 left-0 z-50 w-full h-screen max-w-lg p-6 overflow-y-auto transition-transform ${
+        className={`fixed top-0 left-0 z-[70] w-full h-screen max-w-lg p-6 overflow-y-auto transition-transform ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-gray-900 dark:via-purple-900 dark:to-blue-900 border-r-4 border-amber-600 dark:border-cyan-400 shadow-2xl`}
         style={{

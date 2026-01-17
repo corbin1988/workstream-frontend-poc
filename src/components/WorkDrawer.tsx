@@ -194,7 +194,7 @@ export default function WorkDrawer({
       {/* Overlay backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/40 z-[45] transition-opacity backdrop-blur-sm"
+          className="fixed inset-0 bg-black/40 z-[60] transition-opacity backdrop-blur-sm"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -203,7 +203,7 @@ export default function WorkDrawer({
       {/* Drawer component */}
       <div
         id="work-review-drawer"
-        className={`fixed top-0 right-0 z-50 w-full h-screen max-w-2xl overflow-y-auto transition-transform ${
+        className={`fixed top-0 right-0 z-[70] w-full h-screen max-w-2xl overflow-y-auto transition-transform ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         } bg-white dark:bg-gray-800`}
         tabIndex={-1}
