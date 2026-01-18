@@ -1,0 +1,297 @@
+{
+  "activities": [
+    {
+      "id": "evt-001",
+      "type": "pr_review",
+      "timestamp": "2025-01-18T22:15:00Z",
+      "author": "Sarah Chen",
+      "repo": "api-service",
+      "team": "API Team",
+      "pr": {
+        "number": 456,
+        "title": "Add authentication endpoint for mobile clients",
+        "state": "open",
+        "url": "https://github.com/company/api-service/pull/456",
+        "base": "main",
+        "head": "feature/ABC-123-add-endpoint"
+      },
+      "review": {
+        "state": "approved",
+        "body": "LGTM! Great work on the error handling. Just one minor suggestion about the token refresh timeout."
+      }
+    },
+    {
+      "id": "evt-002",
+      "type": "push",
+      "timestamp": "2025-01-18T21:04:11Z",
+      "author": "Kate Martinez",
+      "repo": "api-service",
+      "team": "API Team",
+      "branch": "feature/ABC-123-add-endpoint",
+      "commits": [
+        {
+          "sha": "a3f8d9c",
+          "message": "Add integration tests for auth endpoint",
+          "files_changed": 3,
+          "insertions": 87,
+          "deletions": 12
+        },
+        {
+          "sha": "b2e7c1a",
+          "message": "Refactor token validation logic",
+          "files_changed": 2,
+          "insertions": 45,
+          "deletions": 38
+        }
+      ]
+    },
+    {
+      "id": "evt-003",
+      "type": "pr_comment",
+      "timestamp": "2025-01-18T19:32:00Z",
+      "author": "Mike Johnson",
+      "repo": "api-service",
+      "team": "API Team",
+      "pr": {
+        "number": 456,
+        "title": "Add authentication endpoint for mobile clients",
+        "state": "open",
+        "url": "https://github.com/company/api-service/pull/456",
+        "base": "main",
+        "head": "feature/ABC-123-add-endpoint"
+      },
+      "comment": {
+        "body": "Have we considered rate limiting for this endpoint? Mobile clients might retry aggressively on failure.",
+        "url": "https://github.com/company/api-service/pull/456#issuecomment-12345"
+      }
+    },
+    {
+      "id": "evt-004",
+      "type": "pr_opened",
+      "timestamp": "2025-01-18T16:45:00Z",
+      "author": "Alex Thompson",
+      "repo": "frontend-web",
+      "team": "Frontend Team",
+      "branch": "feature/XYZ-789-user-settings",
+      "pr": {
+        "number": 892,
+        "title": "Add user preferences settings page",
+        "state": "open",
+        "url": "https://github.com/company/frontend-web/pull/892",
+        "base": "main",
+        "head": "feature/XYZ-789-user-settings"
+      }
+    },
+    {
+      "id": "evt-005",
+      "type": "push",
+      "timestamp": "2025-01-18T15:20:00Z",
+      "author": "Emily Rodriguez",
+      "repo": "data-pipeline",
+      "team": "Data Team",
+      "branch": "feature/cleanup-old-records",
+      "commits": [
+        {
+          "sha": "d9f2a1c",
+          "message": "Implement batch deletion for expired records",
+          "files_changed": 5,
+          "insertions": 156,
+          "deletions": 23
+        }
+      ]
+    },
+    {
+      "id": "evt-006",
+      "type": "pr_merged",
+      "timestamp": "2025-01-18T14:10:00Z",
+      "author": "David Lee",
+      "repo": "frontend-web",
+      "team": "Frontend Team",
+      "pr": {
+        "number": 887,
+        "title": "Fix pagination bug in user list",
+        "state": "merged",
+        "url": "https://github.com/company/frontend-web/pull/887",
+        "base": "main",
+        "head": "fix/pagination-issue"
+      }
+    },
+    {
+      "id": "evt-007",
+      "type": "pr_review",
+      "timestamp": "2025-01-18T13:45:00Z",
+      "author": "Kate Martinez",
+      "repo": "data-pipeline",
+      "team": "Data Team",
+      "pr": {
+        "number": 234,
+        "title": "Optimize query performance for analytics dashboard",
+        "state": "open",
+        "url": "https://github.com/company/data-pipeline/pull/234",
+        "base": "main",
+        "head": "perf/optimize-analytics-queries"
+      },
+      "review": {
+        "state": "changes_requested",
+        "body": "The indexing strategy looks good, but we should add some tests to verify the performance improvement. Can you add benchmarks comparing before/after?"
+      }
+    },
+    {
+      "id": "evt-008",
+      "type": "branch_created",
+      "timestamp": "2025-01-18T11:30:00Z",
+      "author": "Mike Johnson",
+      "repo": "api-service",
+      "team": "API Team",
+      "branch": "feature/DEF-456-rate-limiting"
+    },
+    {
+      "id": "evt-009",
+      "type": "push",
+      "timestamp": "2025-01-18T10:15:00Z",
+      "author": "Alex Thompson",
+      "repo": "frontend-web",
+      "team": "Frontend Team",
+      "branch": "feature/XYZ-789-user-settings",
+      "commits": [
+        {
+          "sha": "e8c3f2d",
+          "message": "Add settings page UI components",
+          "files_changed": 8,
+          "insertions": 234,
+          "deletions": 15
+        },
+        {
+          "sha": "f7b2d1a",
+          "message": "Implement theme switcher",
+          "files_changed": 4,
+          "insertions": 112,
+          "deletions": 8
+        },
+        {
+          "sha": "g6a1c9b",
+          "message": "Add form validation for user preferences",
+          "files_changed": 3,
+          "insertions": 89,
+          "deletions": 5
+        }
+      ]
+    },
+    {
+      "id": "evt-010",
+      "type": "pr_comment",
+      "timestamp": "2025-01-18T09:20:00Z",
+      "author": "Sarah Chen",
+      "repo": "frontend-web",
+      "team": "Frontend Team",
+      "pr": {
+        "number": 892,
+        "title": "Add user preferences settings page",
+        "state": "open",
+        "url": "https://github.com/company/frontend-web/pull/892",
+        "base": "main",
+        "head": "feature/XYZ-789-user-settings"
+      },
+      "comment": {
+        "body": "Love the clean UI! One suggestion: should we persist the theme preference to the backend so it syncs across devices?",
+        "url": "https://github.com/company/frontend-web/pull/892#issuecomment-12346"
+      }
+    },
+    {
+      "id": "evt-011",
+      "type": "push",
+      "timestamp": "2025-01-17T18:45:00Z",
+      "author": "Emily Rodriguez",
+      "repo": "data-pipeline",
+      "team": "Data Team",
+      "branch": "perf/optimize-analytics-queries",
+      "commits": [
+        {
+          "sha": "h5d9e2f",
+          "message": "Add composite index for faster lookups",
+          "files_changed": 2,
+          "insertions": 34,
+          "deletions": 5
+        }
+      ]
+    },
+    {
+      "id": "evt-012",
+      "type": "pr_opened",
+      "timestamp": "2025-01-17T16:30:00Z",
+      "author": "Emily Rodriguez",
+      "repo": "data-pipeline",
+      "team": "Data Team",
+      "branch": "perf/optimize-analytics-queries",
+      "pr": {
+        "number": 234,
+        "title": "Optimize query performance for analytics dashboard",
+        "state": "open",
+        "url": "https://github.com/company/data-pipeline/pull/234",
+        "base": "main",
+        "head": "perf/optimize-analytics-queries"
+      }
+    },
+    {
+      "id": "evt-013",
+      "type": "pr_review",
+      "timestamp": "2025-01-17T15:10:00Z",
+      "author": "David Lee",
+      "repo": "frontend-web",
+      "team": "Frontend Team",
+      "pr": {
+        "number": 887,
+        "title": "Fix pagination bug in user list",
+        "state": "open",
+        "url": "https://github.com/company/frontend-web/pull/887",
+        "base": "main",
+        "head": "fix/pagination-issue"
+      },
+      "review": {
+        "state": "approved",
+        "body": "Nice fix! Tested locally and pagination works correctly now."
+      }
+    },
+    {
+      "id": "evt-014",
+      "type": "push",
+      "timestamp": "2025-01-17T14:20:00Z",
+      "author": "Kate Martinez",
+      "repo": "api-service",
+      "team": "API Team",
+      "branch": "feature/ABC-123-add-endpoint",
+      "commits": [
+        {
+          "sha": "i4c8d7e",
+          "message": "Implement authentication endpoint handler",
+          "files_changed": 6,
+          "insertions": 198,
+          "deletions": 42
+        }
+      ]
+    },
+    {
+      "id": "evt-015",
+      "type": "branch_created",
+      "timestamp": "2025-01-17T10:00:00Z",
+      "author": "Emily Rodriguez",
+      "repo": "data-pipeline",
+      "team": "Data Team",
+      "branch": "feature/cleanup-old-records"
+    }
+  ],
+  "teams": [
+    {
+      "key": "API",
+      "name": "API Team"
+    },
+    {
+      "key": "FRONTEND",
+      "name": "Frontend Team"
+    },
+    {
+      "key": "DATA",
+      "name": "Data Team"
+    }
+  ]
+}

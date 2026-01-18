@@ -172,12 +172,18 @@ export default function BottomNavigation2({ onRetrospectiveClick, onDailyReviewC
                             : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500'
                     }`}>Review</span>
                 </Link>
-                <button 
-                    type="button" 
-                    className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-100 dark:hover:bg-gray-700 group"
+                <Link
+                    href="/activityfeed"
+                    className={`inline-flex flex-col items-center justify-center px-5 hover:bg-gray-100 dark:hover:bg-gray-700 group ${
+                        router.pathname === '/activityfeed' ? 'bg-gray-100 dark:bg-gray-700' : ''
+                    }`}
                 >
                     <svg 
-                        className="w-6 h-6 mb-1 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500" 
+                        className={`w-6 h-6 mb-1 ${
+                            router.pathname === '/activityfeed'
+                                ? 'text-blue-600 dark:text-blue-500'
+                                : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500'
+                        }`}
                         aria-hidden="true" 
                         xmlns="http://www.w3.org/2000/svg" 
                         width="24" 
@@ -193,8 +199,12 @@ export default function BottomNavigation2({ onRetrospectiveClick, onDailyReviewC
                             d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
                         />
                     </svg>
-                    <span className="text-sm text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Activity</span>
-                </button>
+                    <span className={`text-sm ${
+                        router.pathname === '/activityfeed'
+                            ? 'text-blue-600 dark:text-blue-500 font-semibold'
+                            : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500'
+                    }`}>Activity</span>
+                </Link>
                 <button 
                     type="button"
                     onClick={() => setIsOpen(true)}
