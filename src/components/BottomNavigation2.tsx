@@ -42,12 +42,12 @@ const sheet = {
       key: "retrospect-archive",
       label: "Retrospect Archive",
       icon: "archive",
-      href: "/retrospect",
-      create: { label: "New Summary", icon: "plus", href: "/retrospect/new" },
+      href: "/retrospective",
+      create: { label: "New Summary", icon: "plus", href: "/retrospective" },
       items: [
-        { key: "summaries", label: "Summaries", icon: "file-bar-chart", href: "/retrospect" },
-        { key: "signoff", label: "Sign-off Queue", icon: "clipboard-check", href: "/retrospect/signoff" },
-        { key: "by-team", label: "By Team", icon: "users", href: "/retrospect/teams" },
+        { key: "summaries", label: "Summaries", icon: "file-bar-chart", href: "/retrospective" },
+        { key: "signoff", label: "Sign-off Queue", icon: "clipboard-check", href: "/retrospective?filter=pending" },
+        { key: "by-team", label: "By Team", icon: "users", href: "/retrospective?view=teams" },
       ],
     },
 

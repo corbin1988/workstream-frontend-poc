@@ -107,12 +107,16 @@ export default function LeftSidebar({ onRetrospectiveClick, onDailyReviewClick }
                     </button>
 
                     {/* Summary Archive */}
-                    <a href="#" className="flex items-center px-6 py-3 text-base font-normal text-gray-900 dark:text-gray-100 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                    <Link href="/retrospective" className={`flex items-center px-6 py-3 text-base ${
+                        router.pathname === '/retrospective' 
+                            ? 'font-bold text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800' 
+                            : 'font-normal text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    } rounded-full transition-colors`}>
                         <svg className="w-6 h-6 mr-5 text-gray-900 dark:text-gray-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                         </svg>
                         Retro Archive
-                    </a>
+                    </Link>
 
                     {/* Documents - Expandable */}
                     <div>
