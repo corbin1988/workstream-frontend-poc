@@ -6,6 +6,10 @@ import type { JiraProject } from "./api/jira-projects";
 import type { JiraIssueType } from "./api/jira-issue-types";
 import type { JiraField } from "./api/jira-fields";
 import type { DevInfoResponse, DevBranch, DevPullRequest, DevBuild } from "./api/jira-devinfo";
+import type { JiraStatus } from "./api/jira-statuses";
+
+type WorkstreamStatus = "To Do" | "In Progress" | "Done" | "Blocked";
+type StatusMapping = Record<string, WorkstreamStatus>;
 
 function getInitials(name: string) {
     return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
@@ -107,7 +111,7 @@ export default function CardBuilder() {
     const [openSection, setOpenSection] = useState<string>("");
 
     // Wizard state
-    const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+    const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
 
     // Step 1 — Connection
     const [connStatus, setConnStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -134,7 +138,12 @@ export default function CardBuilder() {
         due_date:    "duedate",
     });
 
-    // Step 5 — Saved payload
+    // Step 5 — Status Mapping
+    const [jiraStatuses, setJiraStatuses] = useState<JiraStatus[]>([]);
+    const [statusesLoading, setStatusesLoading] = useState(false);
+    const [statusMapping, setStatusMapping] = useState<StatusMapping>({});
+
+    // Step 6 — Saved payload
     const [savedPayload, setSavedPayload] = useState<object | null>(null);
 
     // Live Jira issue state
@@ -176,6 +185,15 @@ export default function CardBuilder() {
         status_category: (() => {
             const statusFieldId = fieldMapping.status;
             const statusVal = liveIssue.fields[statusFieldId];
+            let jiraStatusName = "";
+            if (statusVal && typeof statusVal === "object") {
+                const s = statusVal as Record<string, unknown>;
+                if (typeof s.name === "string") jiraStatusName = s.name;
+            }
+            if (!jiraStatusName) jiraStatusName = liveIssue.fields.status?.name ?? "";
+            // Use custom statusMapping if configured
+            if (jiraStatusName && statusMapping[jiraStatusName]) return statusMapping[jiraStatusName];
+            // Fallback to Jira status category
             if (statusVal && typeof statusVal === "object") {
                 const s = statusVal as Record<string, unknown>;
                 if (s.statusCategory && typeof s.statusCategory === "object") {
@@ -304,6 +322,28 @@ export default function CardBuilder() {
         }
     }
 
+    async function goToStatusMapping() {
+        setStatusesLoading(true);
+        try {
+            const res = await fetch("/api/jira-statuses");
+            const data = await res.json();
+            const statuses: JiraStatus[] = data.statuses ?? [];
+            setJiraStatuses(statuses);
+            // Pre-populate defaults from Jira status categories
+            const defaults: StatusMapping = {};
+            for (const s of statuses) {
+                const cat = s.statusCategory.name;
+                if (cat === "In Progress") defaults[s.name] = "In Progress";
+                else if (cat === "Done") defaults[s.name] = "Done";
+                else defaults[s.name] = "To Do";
+            }
+            setStatusMapping((prev) => ({ ...defaults, ...prev }));
+        } finally {
+            setStatusesLoading(false);
+            setStep(5);
+        }
+    }
+
     function toggleIssueType(id: string) {
         setSelectedIssueTypes((prev) =>
             prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -311,23 +351,28 @@ export default function CardBuilder() {
     }
 
     function saveMapping() {
+        goToStatusMapping();
+    }
+
+    function saveStatusMapping() {
         const project = projects.find((p) => p.key === selectedProject);
         const payload = {
             provider: "jira",
             project_key: selectedProject,
             project_name: project?.name ?? "",
-            issue_type_ids: selectedIssueTypes,
-            issue_type_names: issueTypes
+            issue_types: issueTypes
                 .filter((t) => selectedIssueTypes.includes(t.id))
-                .map((t) => t.name),
+                .map((t) => ({ id: t.id, name: t.name })),
             field_mapping: fieldMapping,
+            status_mapping: statusMapping,
         };
         console.log("[Workstream] POST /api/work-item-mappings", JSON.stringify(payload, null, 2));
+        localStorage.setItem("workstream_mapping", JSON.stringify(payload));
         setSavedPayload(payload);
-        setStep(5);
+        setStep(6);
     }
 
-    const STEP_LABELS = ["Connect", "Project", "Issue Types", "Field Map", "Done"];
+    const STEP_LABELS = ["Connect", "Project", "Issue Types", "Field Map", "Status Map", "Done"];
 
     return (
         <div className="flex bg-gray-100 dark:bg-gray-900 p-6">
@@ -336,7 +381,7 @@ export default function CardBuilder() {
                 {/* Step indicator */}
                 <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
                     {STEP_LABELS.map((label, i) => {
-                        const s = (i + 1) as 1 | 2 | 3 | 4 | 5;
+                        const s = (i + 1) as 1 | 2 | 3 | 4 | 5 | 6;
                         const active = step === s;
                         const done = step > s;
                         return (
@@ -516,8 +561,8 @@ export default function CardBuilder() {
                                     ))}
                                 </div>
                                 {step === 4 && (
-                                    <Button size="sm" color="success" className="mt-4" onClick={saveMapping}>
-                                        Save Mapping
+                                    <Button size="sm" className="mt-4" onClick={saveMapping} disabled={statusesLoading}>
+                                        {statusesLoading && <Spinner size="sm" className="mr-2" />}Next — Map Statuses
                                     </Button>
                                 )}
                             </>
@@ -525,8 +570,57 @@ export default function CardBuilder() {
                     </Card>
                 )}
 
-                {/* Step 5: Done */}
-                {step === 5 && savedPayload && (
+                {/* Step 5: Status Mapping */}
+                {step >= 5 && (
+                    <Card>
+                        <h5 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Step 5 — Map Statuses</h5>
+                        {statusesLoading ? (
+                            <div className="flex items-center gap-2 text-xs text-gray-500"><Spinner size="sm" />Loading statuses…</div>
+                        ) : (
+                            <>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                                    Map each Jira status to a Workstream canonical status. Defaults are pre-filled from Jira's status categories.
+                                </p>
+                                <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                                    {jiraStatuses.map((s) => (
+                                        <div key={s.id} className="flex items-center gap-2">
+                                            <div className="flex-1 min-w-0">
+                                                <span className="text-xs text-gray-700 dark:text-gray-300 truncate block">{s.name}</span>
+                                                <span className="text-xs text-gray-400 dark:text-gray-500">{s.statusCategory.name}</span>
+                                            </div>
+                                            <span className="text-gray-300 dark:text-gray-600 text-xs shrink-0">→</span>
+                                            <Select
+                                                sizing="sm"
+                                                className="w-36 shrink-0"
+                                                value={statusMapping[s.name] ?? ""}
+                                                onChange={(e) =>
+                                                    setStatusMapping((prev) => ({
+                                                        ...prev,
+                                                        [s.name]: e.target.value as WorkstreamStatus,
+                                                    }))
+                                                }
+                                            >
+                                                <option value="">— unmapped —</option>
+                                                <option value="To Do">To Do</option>
+                                                <option value="In Progress">In Progress</option>
+                                                <option value="Done">Done</option>
+                                                <option value="Blocked">Blocked</option>
+                                            </Select>
+                                        </div>
+                                    ))}
+                                </div>
+                                {step === 5 && (
+                                    <Button size="sm" color="success" className="mt-4" onClick={saveStatusMapping}>
+                                        Save & Finish
+                                    </Button>
+                                )}
+                            </>
+                        )}
+                    </Card>
+                )}
+
+                {/* Step 6: Done */}
+                {step === 6 && savedPayload && (
                     <Card>
                         <h5 className="text-sm font-semibold text-green-700 dark:text-green-400 mb-1">✓ Mapping Saved</h5>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
@@ -549,6 +643,8 @@ export default function CardBuilder() {
                                 setSelectedIssueTypes([]);
                                 setFields([]);
                                 setFieldMapping({ title: "summary", description: "description", status: "status", priority: "priority", due_date: "duedate" });
+                                setJiraStatuses([]);
+                                setStatusMapping({});
                                 setSavedPayload(null);
                             }}
                         >
@@ -583,7 +679,8 @@ export default function CardBuilder() {
                                 <Badge size="xs" className={
                                     card.status_category === "In Progress" ? "bg-yellow-900 text-yellow-300 border border-yellow-700"
                                         : card.status_category === "Done" ? "bg-green-900 text-green-300 border border-green-700"
-                                            : "bg-gray-700 text-gray-300 border border-gray-600"
+                                            : card.status_category === "Blocked" ? "bg-red-900 text-red-300 border border-red-700"
+                                                : "bg-gray-700 text-gray-300 border border-gray-600"
                                 }>
                                     {card.status_category}
                                 </Badge>
