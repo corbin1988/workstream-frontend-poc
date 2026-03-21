@@ -75,6 +75,7 @@ type JiraIssue = {
         updated: string;
         comment?: { comments: JiraComment[] };
         customfield_10000?: string | null;
+        [key: string]: unknown;
     };
 };
 
@@ -146,14 +147,51 @@ export default function CardBuilder() {
     const [devInfo, setDevInfo] = useState<DevInfoResponse | null>(null);
     const [devInfoLoading, setDevInfoLoading] = useState(false);
 
+    function resolveField(fieldId: string): unknown {
+        if (!liveIssue || !fieldId) return undefined;
+        return liveIssue.fields[fieldId];
+    }
+
+    function resolveText(fieldId: string): string {
+        const val = resolveField(fieldId);
+        if (!val) return "";
+        if (typeof val === "string") return val;
+        if (typeof val === "object" && val !== null) {
+            // Handle Jira status/priority objects
+            const obj = val as Record<string, unknown>;
+            if (typeof obj.name === "string") return obj.name;
+            if (typeof obj.statusCategory === "object" && obj.statusCategory !== null) {
+                const cat = obj.statusCategory as Record<string, unknown>;
+                if (typeof cat.name === "string") return cat.name;
+            }
+        }
+        return String(val);
+    }
+
     const card = liveIssue ? {
         issue_key: liveIssue.key,
         jiraIssueId: liveIssue.id,
         assignee: liveIssue.fields.assignee?.displayName ?? "Unassigned",
         intent_frozen_at: liveIssue.fields.updated,
-        status_category: liveIssue.fields.status?.statusCategory?.name ?? liveIssue.fields.status?.name ?? "To Do",
-        title: liveIssue.fields.summary,
-        description: typeof liveIssue.fields.description === "string" ? liveIssue.fields.description : "",
+        status_category: (() => {
+            const statusFieldId = fieldMapping.status;
+            const statusVal = liveIssue.fields[statusFieldId];
+            if (statusVal && typeof statusVal === "object") {
+                const s = statusVal as Record<string, unknown>;
+                if (s.statusCategory && typeof s.statusCategory === "object") {
+                    return (s.statusCategory as Record<string, unknown>).name as string ?? "To Do";
+                }
+                if (typeof s.name === "string") return s.name;
+            }
+            return liveIssue.fields.status?.statusCategory?.name ?? liveIssue.fields.status?.name ?? "To Do";
+        })(),
+        title: resolveText(fieldMapping.title) || liveIssue.fields.summary,
+        description: (() => {
+            const val = resolveField(fieldMapping.description);
+            return typeof val === "string" ? val : "";
+        })(),
+        priority: resolveText(fieldMapping.priority),
+        due_date: resolveText(fieldMapping.due_date),
         jiraComments: liveIssue.fields.comment?.comments ?? [],
     } : null;
 
@@ -643,8 +681,27 @@ export default function CardBuilder() {
                             </div>
                         ) : null}
 
-                        {/* Title + description — from Jira */}
+                        {/* Title + description — from Jira (resolved via fieldMapping) */}
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{card.title}</h3>
+
+                        {/* Mapped fields strip: priority, due_date */}
+                        {(card.priority || card.due_date) && (
+                            <div className="flex flex-wrap items-center gap-3 mb-2 text-xs text-gray-500 dark:text-gray-400">
+                                {card.priority && (
+                                    <span className="flex items-center gap-1">
+                                        <svg className="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" /></svg>
+                                        <span className="font-medium">Priority:</span> {card.priority}
+                                    </span>
+                                )}
+                                {card.due_date && (
+                                    <span className="flex items-center gap-1">
+                                        <svg className="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" /></svg>
+                                        <span className="font-medium">Due:</span> {card.due_date}
+                                    </span>
+                                )}
+                            </div>
+                        )}
+
                         {card.description && (
                             <div className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300">
                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{card.description}</ReactMarkdown>
