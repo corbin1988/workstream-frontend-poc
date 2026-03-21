@@ -13,6 +13,7 @@ interface WorkItem {
 interface DrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  loading?: boolean;
   continueFromYesterday?: WorkItem[];
   activeInProgress?: WorkItem[];
   suggested?: Array<WorkItem & { reason: string }>;
@@ -56,47 +57,15 @@ const sampleSuggested: Array<WorkItem & { reason: string }> = [
   },
 ];
 
-// Sample search results data
-const searchResultsData = {
-  exact: [
-    {
-      key: 'ABC-189',
-      title: 'Implement real-time notifications',
-      context: 'Sprint 12 • Assigned to you',
-    },
-  ],
-  likely: [
-    {
-      key: 'ABC-190',
-      title: 'Add WebSocket support for notifications',
-      context: 'Related to ABC-189 • In Progress',
-    },
-    {
-      key: 'ABC-188',
-      title: 'Design notification preferences UI',
-      context: 'Depends on ABC-189 • Ready',
-    },
-  ],
-  other: [
-    {
-      key: 'ABC-175',
-      title: 'Notification service architecture review',
-      context: 'Closed • Last month',
-    },
-    {
-      key: 'ABC-162',
-      title: 'Push notification integration',
-      context: 'Backlog • Low priority',
-    },
-  ],
-};
+
 
 export default function WorkDrawer2({ 
   isOpen, 
   onClose,
-  continueFromYesterday = sampleContinueFromYesterday,
-  activeInProgress = sampleActiveInProgress,
-  suggested = sampleSuggested
+  loading = false,
+  continueFromYesterday = [],
+  activeInProgress = [],
+  suggested = []
 }: DrawerProps) {
   const [expandedSuggested, setExpandedSuggested] = useState(false);
   const [workItems, setWorkItems] = useState<Record<string, { status: string; note: string }>>({});
@@ -105,8 +74,12 @@ export default function WorkDrawer2({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchOverlayOpen, setSearchOverlayOpen] = useState(false);
   const [highlightedKey, setHighlightedKey] = useState<string | null>(null);
-  const [continueItems, setContinueItems] = useState(continueFromYesterday);
-  const [activeItems, setActiveItems] = useState(activeInProgress);
+  // Track items added manually so we never shadow incoming prop updates
+  const [addedContinueItems, setAddedContinueItems] = useState<WorkItem[]>([]);
+  const [addedActiveItems, setAddedActiveItems] = useState<WorkItem[]>([]);
+
+  const continueItems = [...continueFromYesterday, ...addedContinueItems];
+  const activeItems = [...activeInProgress, ...addedActiveItems];
 
   const today = new Date().toLocaleDateString('en-US', { 
     weekday: 'long', 
@@ -138,25 +111,17 @@ export default function WorkDrawer2({
     const newItem: WorkItem = {
       key: item.key,
       title: item.title,
+      whyHere: 'Added manually',
     };
 
-    // Check if there were any items with changes in Continue from Yesterday
-    const hasContinueItems = continueItems.length > 0;
-    const hasPreviouslyActive = continueItems.some(i => i.hasChanges);
-
-    if (hasPreviouslyActive || hasContinueItems) {
-      // Add to Continue from Yesterday
-      setContinueItems(prev => [...prev, { ...newItem, whyHere: 'Added manually' }]);
+    if (continueItems.length > 0) {
+      setAddedContinueItems(prev => [...prev, newItem]);
     } else {
-      // Add to Active / In Progress
-      setActiveItems(prev => [...prev, { ...newItem, whyHere: 'Added manually' }]);
+      setAddedActiveItems(prev => [...prev, newItem]);
     }
 
-    // Close overlay and clear search
     setSearchOverlayOpen(false);
     setSearchQuery('');
-
-    // Highlight the new item
     setHighlightedKey(item.key);
     setTimeout(() => setHighlightedKey(null), 2000);
   };
@@ -165,26 +130,37 @@ export default function WorkDrawer2({
     setSearchOverlayOpen(false);
   };
 
-  // Filter search results based on query
+  // Filter search results based on query, using items from props
   const getFilteredResults = () => {
     if (!searchQuery) return { exact: [], likely: [], other: [] };
-    
+
     const query = searchQuery.toLowerCase();
-    
-    return {
-      exact: searchResultsData.exact.filter(item => 
-        item.key.toLowerCase().includes(query) || 
-        item.title.toLowerCase().includes(query)
-      ),
-      likely: searchResultsData.likely.filter(item => 
-        item.key.toLowerCase().includes(query) || 
-        item.title.toLowerCase().includes(query)
-      ),
-      other: searchResultsData.other.filter(item => 
-        item.key.toLowerCase().includes(query) || 
-        item.title.toLowerCase().includes(query)
-      ).slice(0, 2), // Limit aggressively
-    };
+
+    // Build a pool from suggested items not already in active/continue lists
+    const activeKeys = new Set([
+      ...continueItems.map(i => i.key),
+      ...activeItems.map(i => i.key),
+    ]);
+    const pool = suggested
+      .filter(i => !activeKeys.has(i.key))
+      .map(i => ({ key: i.key, title: i.title, context: i.reason }));
+
+    const exact = pool.filter(
+      item => item.key.toLowerCase() === query
+    );
+    const exactKeys = new Set(exact.map(i => i.key));
+    const likely = pool.filter(
+      item =>
+        !exactKeys.has(item.key) &&
+        (item.key.toLowerCase().includes(query) ||
+          item.title.toLowerCase().includes(query))
+    );
+    const likelyKeys = new Set(likely.map(i => i.key));
+    const other = pool
+      .filter(item => !exactKeys.has(item.key) && !likelyKeys.has(item.key))
+      .slice(0, 2);
+
+    return { exact, likely, other };
   };
 
   const searchResults = getFilteredResults();
@@ -533,7 +509,18 @@ export default function WorkDrawer2({
           <div className={`flex-1 overflow-y-auto px-6 py-4 transition-all ${
             searchOverlayOpen ? 'blur-sm brightness-75' : ''
           }`}>
-            
+
+            {/* Loading state */}
+            {loading && (
+              <div className="flex flex-col items-center justify-center py-16 gap-3 text-gray-500 dark:text-gray-400">
+                <svg className="animate-spin w-6 h-6" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                </svg>
+                <span className="text-sm">Loading your Jira issues…</span>
+              </div>
+            )}
+
             {/* Continue from Yesterday */}
             {continueItems.length > 0 && (
               <div className="mb-6">
