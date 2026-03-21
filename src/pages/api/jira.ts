@@ -31,6 +31,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const jql = (req.query.jql as string) || "project=WORK";
     console.log("[jira] Fetching jql:", jql);
 
+    const maxResults = parseInt((req.query.maxResults as string) || "50", 10);
+
     const jiraRes = await fetch(
         `https://${domain}/rest/api/3/search/jql?expand=renderedFields`,
         {
@@ -43,16 +45,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             body: JSON.stringify({
                 jql,
                 fields: ["*all"],
+                maxResults,
             }),
         }
     );
 
     const data = await jiraRes.json();
-    // Flatten ADF description to plain text on each issue
+    // Flatten ADF fields to plain text on each issue
     if (data.issues) {
         for (const issue of data.issues) {
-            if (issue.fields?.description) {
+            if (issue.fields?.description && typeof issue.fields.description === "object") {
                 issue.fields.description = adfToText(issue.fields.description).trim();
+            }
+            if (Array.isArray(issue.fields?.comment?.comments)) {
+                for (const c of issue.fields.comment.comments) {
+                    if (c.body && typeof c.body === "object") {
+                        c.body = adfToText(c.body).trim();
+                    }
+                }
             }
         }
     }
