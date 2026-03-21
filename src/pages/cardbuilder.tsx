@@ -241,7 +241,11 @@ export default function CardBuilder() {
         try {
             const res = await fetch("/api/jira-issue-types");
             const data = await res.json();
-            const types: JiraIssueType[] = (data.issueTypes ?? []).filter((t: JiraIssueType) => !t.subtask);
+            const selectedProjectId = projects.find((p) => p.key === selectedProject)?.id;
+            const types: JiraIssueType[] = (data.issueTypes ?? []).filter((t: JiraIssueType) => {
+                if (t.subtask) return false;
+                return t.scope?.type === "PROJECT" && t.scope.project?.id === selectedProjectId;
+            });
             setIssueTypes(types);
             setSelectedIssueTypes(types.map((t) => t.id));
         } finally {
@@ -408,16 +412,26 @@ export default function CardBuilder() {
                             <>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Select which Jira issue types map to Workstream cards.</p>
                                 <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                                    {issueTypes.map((t) => (
-                                        <div key={t.id} className="flex items-center gap-2">
-                                            <Checkbox
-                                                id={`it-${t.id}`}
-                                                checked={selectedIssueTypes.includes(t.id)}
-                                                onChange={() => toggleIssueType(t.id)}
-                                            />
-                                            <Label htmlFor={`it-${t.id}`} className="text-xs cursor-pointer">{t.name}</Label>
-                                        </div>
-                                    ))}
+                                    {issueTypes.map((t) => {
+                                        let projectLabel = "Global";
+                                        if (t.scope?.type === "PROJECT" && t.scope.project?.id) {
+                                            const match = projects.find((p) => p.id === t.scope!.project!.id);
+                                            projectLabel = match ? `${match.key} — ${match.name}` : `id:${t.scope.project.id}`;
+                                        }
+                                        return (
+                                            <div key={t.id} className="flex items-center gap-2">
+                                                <Checkbox
+                                                    id={`it-${t.id}`}
+                                                    checked={selectedIssueTypes.includes(t.id)}
+                                                    onChange={() => toggleIssueType(t.id)}
+                                                />
+                                                <Label htmlFor={`it-${t.id}`} className="text-xs cursor-pointer flex items-center gap-1.5">
+                                                    {t.name}
+                                                    <span className="text-gray-400 dark:text-gray-500 font-mono">[{projectLabel}]</span>
+                                                </Label>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                                 {step === 3 && (
                                     <Button size="sm" className="mt-3" onClick={goToFieldMapping} disabled={selectedIssueTypes.length === 0 || fieldsLoading}>

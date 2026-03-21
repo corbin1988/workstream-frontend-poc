@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Avatar, Badge, Button, Card, Checkbox, Label, Select, Spinner } from "flowbite-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import type { JiraProject } from "./api/jira-projects";
 import type { JiraIssueType } from "./api/jira-issue-types";
 import type { JiraField } from "./api/jira-fields";
@@ -67,7 +69,7 @@ type JiraIssue = {
     key: string;
     fields: {
         summary: string;
-        description: string;
+        description: unknown;
         status: { name: string; statusCategory: { name: string } };
         assignee: { displayName: string; avatarUrls: Record<string, string> } | null;
         updated: string;
@@ -151,7 +153,7 @@ export default function CardBuilder() {
         intent_frozen_at: liveIssue.fields.updated,
         status_category: liveIssue.fields.status?.statusCategory?.name ?? liveIssue.fields.status?.name ?? "To Do",
         title: liveIssue.fields.summary,
-        description: liveIssue.fields.description ?? "",
+        description: typeof liveIssue.fields.description === "string" ? liveIssue.fields.description : "",
         jiraComments: liveIssue.fields.comment?.comments ?? [],
     } : null;
 
@@ -630,7 +632,9 @@ export default function CardBuilder() {
                         {/* Title + description — from Jira */}
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{card.title}</h3>
                         {card.description && (
-                            <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-line">{card.description}</p>
+                            <div className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{card.description}</ReactMarkdown>
+                            </div>
                         )}
 
                         {/* Standup — from Workstream DB (mock) */}

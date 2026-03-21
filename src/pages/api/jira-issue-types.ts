@@ -8,6 +8,14 @@ export type JiraIssueType = {
     iconUrl?: string;
     subtask: boolean;
     hierarchyLevel?: number;
+    scope?: {
+        type: "GLOBAL" | "PROJECT";
+        project?: {
+            id: string;
+            key?: string;
+            name?: string;
+        };
+    };
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
