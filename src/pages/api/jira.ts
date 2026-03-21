@@ -1,19 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-
-// Recursively extract plain text from Jira's Atlassian Document Format (ADF)
-function adfToText(node: any): string {
-    if (!node) return "";
-    if (node.type === "text") return node.text ?? "";
-    if (node.type === "hardBreak") return "\n";
-    if (Array.isArray(node.content)) {
-        const text = node.content.map(adfToText).join("");
-        if (["paragraph", "heading", "codeBlock", "blockquote", "listItem", "bulletList", "orderedList", "rule"].includes(node.type)) {
-            return text + "\n";
-        }
-        return text;
-    }
-    return "";
-}
+import { convert } from "adf-to-md";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const email = process.env.JIRA_EMAIL;
@@ -55,12 +41,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (data.issues) {
         for (const issue of data.issues) {
             if (issue.fields?.description && typeof issue.fields.description === "object") {
-                issue.fields.description = adfToText(issue.fields.description).trim();
+                issue.fields.description = convert(issue.fields.description).result.trim();
             }
             if (Array.isArray(issue.fields?.comment?.comments)) {
                 for (const c of issue.fields.comment.comments) {
                     if (c.body && typeof c.body === "object") {
-                        c.body = adfToText(c.body).trim();
+                        c.body = convert(c.body).result.trim();
                     }
                 }
             }

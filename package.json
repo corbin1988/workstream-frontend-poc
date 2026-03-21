@@ -12,6 +12,7 @@
     "@tailwindcss/typography": "^0.5.19",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@uiw/react-json-view": "^2.0.0-alpha.41",
+    "adf-to-md": "^1.2.1",
     "flowbite": "^4.0.1",
     "flowbite-react": "^0.12.15",
     "next": "16.1.1",
