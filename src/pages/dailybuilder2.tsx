@@ -40,6 +40,38 @@ function resolveFieldText(fields: Record<string, unknown>, fieldId: string): str
   return String(val);
 }
 
+// Recursively extracts plain text from an ADF (Atlassian Document Format) node
+function extractAdfText(node: unknown): string {
+  if (!node || typeof node !== 'object') return '';
+  const n = node as Record<string, unknown>;
+  if (typeof n.text === 'string') return n.text;
+  if (Array.isArray(n.content)) {
+    return (n.content as unknown[]).map(extractAdfText).join('');
+  }
+  return '';
+}
+
+function resolveDescriptionExcerpt(fields: Record<string, unknown>, fieldId: string, maxLen = 120): string | undefined {
+  if (!fieldId) return undefined;
+  const val = fields[fieldId];
+  if (!val) return undefined;
+  let text = '';
+  if (typeof val === 'string') {
+    text = val;
+  } else if (typeof val === 'object' && val !== null) {
+    const obj = val as Record<string, unknown>;
+    // ADF doc node
+    if (obj.type === 'doc' && Array.isArray(obj.content)) {
+      text = extractAdfText(obj);
+    } else if (typeof obj.name === 'string') {
+      text = obj.name;
+    }
+  }
+  text = text.trim();
+  if (!text) return undefined;
+  return text.length > maxLen ? text.slice(0, maxLen).trimEnd() + '…' : text;
+}
+
 // Inverts the DB status_mapping ({ "In Progress": ["In Progress", "In Review"] })
 // into a lookup map ({ "In Progress": "In Progress", "In Review": "In Progress" })
 function buildStatusLookup(statusMapping: DbMapping['status_mapping']): Record<string, string> {
@@ -92,6 +124,7 @@ export default function DailyBuilder() {
           const activeInProgress: WorkItem[] = issues.map(issue => ({
             key: issue.key,
             title: resolveFieldText(issue.fields, mapping.title) || issue.key,
+            intent: resolveDescriptionExcerpt(issue.fields, mapping.description),
             whyHere: getWorkstreamStatus(issue.fields, mapping.status, statusLookup),
           }));
           return { projectKey: mapping.project_key, projectName: mapping.project_name, activeInProgress };
