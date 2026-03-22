@@ -1,12 +1,15 @@
 'use strict';
 
 const { Router } = require('express');
-const { searchIssues, getCreds, getIssues, getProjects, ping, getDevInfo, getIssueTypes, getFields, getStatuses, saveMapping } = require('../controllers/jiraController');
+const { searchIssues, getCreds, getIssues, getProjects, ping, getDevInfo, getIssueTypes, getFields, getStatuses, saveMapping, previewIssues } = require('../controllers/jiraController');
 
 const router = Router();
 
 // GET /api/jira/search?jql=...&maxResults=50
 router.get('/search', searchIssues);
+
+// GET /api/jira/preview-issues?projectKey=...&maxResults=30 (wizard use — no mapping required)
+router.get('/preview-issues', previewIssues);
 
 // GET /api/jira/creds
 router.get('/creds', getCreds);

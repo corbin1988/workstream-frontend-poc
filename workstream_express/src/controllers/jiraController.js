@@ -277,5 +277,36 @@ async function saveMapping(req, res) {
     }
 }
 
-module.exports = { searchIssues, getCreds, getIssues, getProjects, ping, getDevInfo, getIssueTypes, getFields, getStatuses, saveMapping };
+// GET /api/jira/preview-issues?projectKey=...&maxResults=30
+// Lightweight issue fetch for the setup wizard — no mapping required.
+async function previewIssues(req, res) {
+    const config = getJiraConfig();
+    if (!config) return res.status(500).json({ error: 'Jira credentials not configured' });
+    const { email, token, domain } = config;
+
+    const projectKey = req.query.projectKey ? String(req.query.projectKey) : null;
+    if (!projectKey) return res.status(400).json({ error: 'projectKey query param is required' });
+
+    const maxResults = parseInt(req.query.maxResults || '30', 10);
+    const jql = `project = "${projectKey}" ORDER BY updated DESC`;
+
+    try {
+        const jiraRes = await fetch(
+            `https://${domain}/rest/api/3/search/jql?expand=renderedFields`,
+            {
+                method: 'POST',
+                headers: getAuthHeaders(email, token),
+                body: JSON.stringify({ jql, fields: ['*all'], maxResults }),
+            }
+        );
+        const data = await jiraRes.json();
+        flattenAdf(data);
+        res.setHeader('Cache-Control', 'no-store');
+        return res.status(jiraRes.status).json(data);
+    } catch (err) {
+        return res.status(500).json({ error: err?.message ?? 'Failed to fetch preview issues' });
+    }
+}
+
+module.exports = { searchIssues, getCreds, getIssues, getProjects, ping, getDevInfo, getIssueTypes, getFields, getStatuses, saveMapping, previewIssues };
 

@@ -270,8 +270,7 @@ export default function CardBuilder2() {
         setSelectedIssueKey("");
         setDevInfo(null);
         try {
-            const jql = encodeURIComponent(`project = "${projectKey}" ORDER BY updated DESC`);
-            const res = await fetch(`${EXPRESS_URL}/api/jira/search?jql=${jql}&maxResults=30`);
+            const res = await fetch(`${EXPRESS_URL}/api/jira/preview-issues?projectKey=${encodeURIComponent(projectKey)}&maxResults=30`);
             const data = await res.json();
             const issues: JiraIssue[] = data.issues ?? [];
             setJiraIssues(issues);
