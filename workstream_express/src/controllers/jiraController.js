@@ -204,13 +204,12 @@ async function getStatuses(req, res) {
     }
 }
 
+const TENANT_ID = '1';
+
 // POST /api/jira/mappings
 async function saveMapping(req, res) {
-    const { tenant_id, provider, project_key, project_name, issue_types, field_mapping, status_mapping } = req.body;
+    const { provider, project_key, project_name, issue_types, field_mapping, status_mapping } = req.body;
 
-    if (tenant_id === undefined || tenant_id === null || tenant_id === '') {
-        return res.status(400).json({ error: 'tenant_id is required' });
-    }
     if (!project_key) {
         return res.status(400).json({ error: 'project_key is required' });
     }
@@ -218,7 +217,7 @@ async function saveMapping(req, res) {
     try {
         const doc = await WorkItemMapping.findOneAndUpdate(
             {
-                tenant_id: BigInt(tenant_id),
+                tenant_id: BigInt(TENANT_ID),
                 provider: provider ?? 'jira',
                 project_key,
             },

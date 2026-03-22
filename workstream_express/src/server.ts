@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import type { Request, Response } from 'express';
 import { connectDB } from './db';
+import mappingRoutes from './routes/mappingRoutes';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const jiraRoutes = require('./routes/jiraRoutes');
 
@@ -13,6 +14,7 @@ app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000' }));
 app.use(express.json());
 
 app.use('/api/jira', jiraRoutes);
+app.use('/api/mappings', mappingRoutes);
 
 app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'Workstream Express API is running' });

@@ -302,15 +302,39 @@ export default function CardBuilder2() {
     async function goToIssueTypes() {
         setIssueTypesLoading(true);
         try {
-            const res = await fetch(`${EXPRESS_URL}/api/jira/issue-types`);
-            const data = await res.json();
+            const [issueTypesRes, mappingRes] = await Promise.all([
+                fetch(`${EXPRESS_URL}/api/jira/issue-types`),
+                fetch(`${EXPRESS_URL}/api/mappings/${selectedProject}?provider=jira`),
+            ]);
+            const issueTypesData = await issueTypesRes.json();
             const selectedProjectId = projects.find((p) => p.key === selectedProject)?.id;
-            const types: JiraIssueType[] = (data.issueTypes ?? []).filter((t: JiraIssueType) => {
+            const types: JiraIssueType[] = (issueTypesData.issueTypes ?? []).filter((t: JiraIssueType) => {
                 if (t.subtask) return false;
                 return t.scope?.type === "PROJECT" && t.scope.project?.id === selectedProjectId;
             });
             setIssueTypes(types);
-            setSelectedIssueTypes(types.map((t) => t.id));
+
+            // Pre-populate wizard state from an existing saved mapping
+            if (mappingRes.ok) {
+                const { mapping } = await mappingRes.json();
+                if (mapping) {
+                    const validIds = new Set(types.map((t) => t.id));
+                    const savedIds = (mapping.issue_types ?? []).map((t: { id: string }) => t.id);
+                    setSelectedIssueTypes(savedIds.filter((id: string) => validIds.has(id)));
+                    setFieldMapping({
+                        title:       mapping.title       ?? "summary",
+                        description: mapping.description ?? "description",
+                        status:      mapping.status      ?? "status",
+                        priority:    mapping.priority    ?? "priority",
+                        due_date:    mapping.due_date    ?? "duedate",
+                    });
+                    setStatusMapping(mapping.status_mapping ?? EMPTY_STATUS_MAPPING);
+                } else {
+                    setSelectedIssueTypes(types.map((t) => t.id));
+                }
+            } else {
+                setSelectedIssueTypes(types.map((t) => t.id));
+            }
         } finally {
             setIssueTypesLoading(false);
             setStep(3);
@@ -364,9 +388,7 @@ export default function CardBuilder2() {
 
     async function saveStatusMapping() {
         const project = projects.find((p) => p.key === selectedProject);
-        const tenantId = process.env.NEXT_PUBLIC_TENANT_ID ?? "1";
         const payload = {
-            tenant_id: tenantId,
             provider: "jira",
             project_key: selectedProject,
             project_name: project?.name ?? "",
@@ -378,7 +400,7 @@ export default function CardBuilder2() {
             status_mapping: statusMapping,
         };
         try {
-            const res = await fetch(`${EXPRESS_URL}/api/jira/mappings`, {
+            const res = await fetch(`${EXPRESS_URL}/api/mappings`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
@@ -666,27 +688,56 @@ export default function CardBuilder2() {
                         <pre className="text-xs bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-3 overflow-x-auto whitespace-pre-wrap break-all">
                             {JSON.stringify(savedPayload, null, 2)}
                         </pre>
-                        <Button
-                            size="sm"
-                            color="light"
-                            className="mt-3"
-                            onClick={() => {
-                                setStep(1);
-                                setConnStatus("idle");
-                                setConnMessage("");
-                                setProjects([]);
-                                setSelectedProject("");
-                                setIssueTypes([]);
-                                setSelectedIssueTypes([]);
-                                setFields([]);
-                                setFieldMapping({ title: "summary", description: "description", status: "status", priority: "priority", due_date: "duedate" });
-                                setJiraStatuses([]);
-                                setStatusMapping(EMPTY_STATUS_MAPPING);
-                                setSavedPayload(null);
-                            }}
-                        >
-                            Start Over
-                        </Button>
+                        <div className="mt-3 flex items-center gap-2 flex-wrap">
+                            <Button
+                                size="sm"
+                                color="light"
+                                onClick={() => {
+                                    setStep(1);
+                                    setConnStatus("idle");
+                                    setConnMessage("");
+                                    setProjects([]);
+                                    setSelectedProject("");
+                                    setIssueTypes([]);
+                                    setSelectedIssueTypes([]);
+                                    setFields([]);
+                                    setFieldMapping({ title: "summary", description: "description", status: "status", priority: "priority", due_date: "duedate" });
+                                    setJiraStatuses([]);
+                                    setStatusMapping(EMPTY_STATUS_MAPPING);
+                                    setSavedPayload(null);
+                                }}
+                            >
+                                Start Over
+                            </Button>
+                            <Button
+                                size="sm"
+                                color="failure"
+                                onClick={async () => {
+                                    const projectKey = (savedPayload as { project_key?: string } | null)?.project_key ?? selectedProject;
+                                    if (!projectKey) return;
+                                    try {
+                                        await fetch(`${EXPRESS_URL}/api/mappings/${projectKey}?provider=jira`, { method: "DELETE" });
+                                    } catch (err) {
+                                        console.error("[Workstream] Error deleting mapping:", err);
+                                    }
+                                    localStorage.removeItem("workstream_mapping");
+                                    setStep(1);
+                                    setConnStatus("idle");
+                                    setConnMessage("");
+                                    setProjects([]);
+                                    setSelectedProject("");
+                                    setIssueTypes([]);
+                                    setSelectedIssueTypes([]);
+                                    setFields([]);
+                                    setFieldMapping({ title: "summary", description: "description", status: "status", priority: "priority", due_date: "duedate" });
+                                    setJiraStatuses([]);
+                                    setStatusMapping(EMPTY_STATUS_MAPPING);
+                                    setSavedPayload(null);
+                                }}
+                            >
+                                Delete Mapping
+                            </Button>
+                        </div>
                     </Card>
                 )}
 
