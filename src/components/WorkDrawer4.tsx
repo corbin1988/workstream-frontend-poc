@@ -10,10 +10,18 @@ interface WorkItem {
   triaged?: boolean;
 }
 
+export interface ProjectItems {
+  projectKey: string;
+  projectName: string;
+  activeInProgress: WorkItem[];
+  suggested?: Array<WorkItem & { reason: string }>;
+}
+
 interface DrawerProps {
   isOpen: boolean;
   onClose: () => void;
   loading?: boolean;
+  projects?: ProjectItems[];
   continueFromYesterday?: WorkItem[];
   activeInProgress?: WorkItem[];
   suggested?: Array<WorkItem & { reason: string }>;
@@ -63,6 +71,7 @@ export default function WorkDrawer2({
   isOpen, 
   onClose,
   loading = false,
+  projects,
   continueFromYesterday = [],
   activeInProgress = [],
   suggested = []
@@ -77,9 +86,23 @@ export default function WorkDrawer2({
   // Track items added manually so we never shadow incoming prop updates
   const [addedContinueItems, setAddedContinueItems] = useState<WorkItem[]>([]);
   const [addedActiveItems, setAddedActiveItems] = useState<WorkItem[]>([]);
+  const [activeTab, setActiveTab] = useState<string>('all');
+
+  // Multi-project derived values
+  const allProjectActiveItems = projects?.flatMap(p => p.activeInProgress) ?? [];
+  const allProjectSuggested = projects?.flatMap(p => p.suggested ?? []) ?? [];
+  const hasTabs = (projects?.length ?? 0) >= 2;
+  const tabProject = hasTabs && activeTab !== 'all'
+    ? (projects?.find(p => p.projectKey === activeTab) ?? null)
+    : null;
 
   const continueItems = [...continueFromYesterday, ...addedContinueItems];
-  const activeItems = [...activeInProgress, ...addedActiveItems];
+  const activeItems = projects
+    ? [...(tabProject ? tabProject.activeInProgress : allProjectActiveItems), ...addedActiveItems]
+    : [...activeInProgress, ...addedActiveItems];
+  const displayedSuggested = projects
+    ? (tabProject ? (tabProject.suggested ?? []) : allProjectSuggested)
+    : suggested;
 
   const today = new Date().toLocaleDateString('en-US', { 
     weekday: 'long', 
@@ -141,7 +164,7 @@ export default function WorkDrawer2({
       ...continueItems.map(i => i.key),
       ...activeItems.map(i => i.key),
     ]);
-    const pool = suggested
+    const pool = displayedSuggested
       .filter(i => !activeKeys.has(i.key))
       .map(i => ({ key: i.key, title: i.title, context: i.reason }));
 
@@ -505,6 +528,41 @@ export default function WorkDrawer2({
             </form>
           </div>
 
+          {/* Project Tabs */}
+          {hasTabs && (
+            <div className={`border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 transition-all ${
+              searchOverlayOpen ? 'blur-sm brightness-75' : ''
+            }`}>
+              <div className="flex overflow-x-auto px-6">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('all')}
+                  className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors ${
+                    activeTab === 'all'
+                      ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400'
+                      : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+                >
+                  All
+                </button>
+                {projects?.map(p => (
+                  <button
+                    key={p.projectKey}
+                    type="button"
+                    onClick={() => setActiveTab(p.projectKey)}
+                    className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors ${
+                      activeTab === p.projectKey
+                        ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400'
+                        : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                  >
+                    {p.projectName || p.projectKey}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Content */}
           <div className={`flex-1 overflow-y-auto px-6 py-4 transition-all ${
             searchOverlayOpen ? 'blur-sm brightness-75' : ''
@@ -546,14 +604,14 @@ export default function WorkDrawer2({
             )}
 
             {/* Suggested (Collapsed) */}
-            {suggested.length > 0 && (
+            {displayedSuggested.length > 0 && (
               <div className="mb-6">
                 <button
                   type="button"
                   onClick={() => setExpandedSuggested(!expandedSuggested)}
                   className="flex items-center justify-between w-full text-sm font-semibold text-gray-900 dark:text-white mb-3 hover:text-gray-700 dark:hover:text-gray-300"
                 >
-                  <span>Suggested ({suggested.length})</span>
+                  <span>Suggested ({displayedSuggested.length})</span>
                   <svg
                     className={`w-4 h-4 transition-transform ${expandedSuggested ? 'rotate-180' : ''}`}
                     fill="none"
@@ -565,7 +623,7 @@ export default function WorkDrawer2({
                 </button>
                 {expandedSuggested && (
                   <div className="space-y-0">
-                    {suggested.map(item => (
+                    {displayedSuggested.map(item => (
                       <div key={item.key} className="py-3 border-b border-gray-200 dark:border-gray-700">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">

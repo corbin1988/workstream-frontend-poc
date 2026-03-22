@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import WorkDrawer4 from '@/components/WorkDrawer4';
+import WorkDrawer4, { type ProjectItems } from '@/components/WorkDrawer4';
 
 const EXPRESS_URL = process.env.NEXT_PUBLIC_EXPRESS_URL ?? 'http://localhost:3001';
 
@@ -64,41 +64,40 @@ function getWorkstreamStatus(
 export default function DailyBuilder() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [inProgress, setInProgress] = useState<WorkItem[]>([]);
-  const [suggested, setSuggested] = useState<Array<WorkItem & { reason: string }>>([]); 
+  const [projectItems, setProjectItems] = useState<ProjectItems[]>([]);
 
   async function handleOpen() {
-    setInProgress([]);
-    setSuggested([]);
+    setProjectItems([]);
     setLoading(true);
     setOpen(true);
     try {
       const mappingRes = await fetch(`${EXPRESS_URL}/api/mappings?provider=jira`);
       if (!mappingRes.ok) throw new Error('Failed to fetch mapping');
       const { mappings } = await mappingRes.json();
-      const mapping: DbMapping = mappings?.[0];
-      if (!mapping) throw new Error('No mapping configured');
+      if (!mappings?.length) throw new Error('No mapping configured');
 
-      const statusLookup = buildStatusLookup(mapping.status_mapping);
-
-      const issueTypeFilter = mapping.issue_types.length > 0
-        ? ` AND issueType in (${mapping.issue_types.map(t => `"${t.name}"`).join(', ')})`
-        : '';
-      const jql = `project = "${mapping.project_key}" AND assignee = currentUser() AND statusCategory != Done${issueTypeFilter} ORDER BY updated DESC`;
-      const res = await fetch(`${EXPRESS_URL}/api/jira/search?jql=${encodeURIComponent(jql)}&maxResults=50&projectKey=${encodeURIComponent(mapping.project_key)}`);
-      if (!res.ok) return;
-      const data = await res.json();
-      const issues: Array<{ id: string; key: string; fields: Record<string, unknown> }> = data.issues ?? [];
-
-      const newInProgress: WorkItem[] = [];
-
-      for (const issue of issues) {
-        const title = resolveFieldText(issue.fields, mapping.title) || issue.key;
-        const mappedStatus = getWorkstreamStatus(issue.fields, mapping.status, statusLookup);
-        newInProgress.push({ key: issue.key, title, whyHere: mappedStatus });
-      }
-
-      setInProgress(newInProgress);
+      const results = await Promise.all(
+        (mappings as DbMapping[]).map(async (mapping) => {
+          const statusLookup = buildStatusLookup(mapping.status_mapping);
+          const issueTypeFilter = mapping.issue_types.length > 0
+            ? ` AND issueType in (${mapping.issue_types.map(t => `"${t.name}"`).join(', ')})`
+            : '';
+          const jql = `project = "${mapping.project_key}" AND assignee = currentUser() AND statusCategory != Done${issueTypeFilter} ORDER BY updated DESC`;
+          const res = await fetch(
+            `${EXPRESS_URL}/api/jira/search?jql=${encodeURIComponent(jql)}&maxResults=50&projectKey=${encodeURIComponent(mapping.project_key)}`
+          );
+          if (!res.ok) return { projectKey: mapping.project_key, projectName: mapping.project_name, activeInProgress: [] };
+          const data = await res.json();
+          const issues: Array<{ id: string; key: string; fields: Record<string, unknown> }> = data.issues ?? [];
+          const activeInProgress: WorkItem[] = issues.map(issue => ({
+            key: issue.key,
+            title: resolveFieldText(issue.fields, mapping.title) || issue.key,
+            whyHere: getWorkstreamStatus(issue.fields, mapping.status, statusLookup),
+          }));
+          return { projectKey: mapping.project_key, projectName: mapping.project_name, activeInProgress };
+        })
+      );
+      setProjectItems(results);
     } catch (e) {
       console.error('[DailyBuilder] Failed to load Jira issues:', e);
     } finally {
@@ -121,8 +120,7 @@ export default function DailyBuilder() {
         isOpen={open}
         onClose={() => setOpen(false)}
         loading={loading}
-        activeInProgress={inProgress}
-        suggested={suggested}
+        projects={projectItems}
       />
     </div>
   );
