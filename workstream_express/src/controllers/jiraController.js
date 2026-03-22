@@ -2,6 +2,42 @@
 
 const { getAuthHeaders, flattenAdf, getJiraConfig } = require('../utils/utils');
 
+// GET /api/jira/search?jql=...&maxResults=50
+async function searchIssues(req, res) {
+    const config = getJiraConfig();
+    if (!config) return res.status(500).json({ error: 'Jira credentials not configured' });
+    const { email, token, domain } = config;
+
+    const jql = (req.query.jql) || 'project=WORK';
+    const maxResults = parseInt(req.query.maxResults || '50', 10);
+
+    const jiraRes = await fetch(
+        `https://${domain}/rest/api/3/search/jql?expand=renderedFields`,
+        {
+            method: 'POST',
+            headers: getAuthHeaders(email, token),
+            body: JSON.stringify({ jql, fields: ['*all'], maxResults }),
+        }
+    );
+
+    const data = await jiraRes.json();
+    flattenAdf(data);
+
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(jiraRes.status).json(data);
+}
+
+// GET /api/jira/creds
+function getCreds(req, res) {
+    const config = getJiraConfig();
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(200).json({
+        email: config?.email ?? '',
+        token: config?.token ?? '',
+        domain: config?.domain ?? '',
+    });
+}
+
 async function getIssues(req, res) {
     const config = getJiraConfig();
     if (!config) return res.status(500).json({ error: 'Jira credentials not configured' });
@@ -44,5 +80,5 @@ async function getProjects(req, res) {
     return res.status(projRes.status).json(data);
 }
 
-module.exports = { getIssues, getProjects };
+module.exports = { searchIssues, getCreds, getIssues, getProjects };
 

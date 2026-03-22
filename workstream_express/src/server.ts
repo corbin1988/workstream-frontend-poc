@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import cors from 'cors';
 import type { Request, Response } from 'express';
 import { connectDB } from './db';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -8,6 +9,7 @@ const jiraRoutes = require('./routes/jiraRoutes');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000' }));
 app.use(express.json());
 
 app.use('/api/jira', jiraRoutes);
