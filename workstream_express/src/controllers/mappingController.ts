@@ -71,7 +71,7 @@ export async function deleteMappingHandler(req: Request, res: Response) {
  * Create or update a mapping.
  */
 export async function upsertMappingHandler(req: Request, res: Response) {
-  const { provider, project_key, project_name, issue_types, field_mapping, status_mapping } = req.body;
+  const { provider, project_key, project_name, issue_types, field_mapping, status_mapping, task_questions } = req.body;
 
   if (!project_key) {
     return res.status(400).json({ error: 'project_key is required' });
@@ -99,6 +99,7 @@ export async function upsertMappingHandler(req: Request, res: Response) {
             'Done':        status_mapping?.['Done']        ?? [],
             'Blocked':     status_mapping?.['Blocked']     ?? [],
           },
+          task_questions: Array.isArray(task_questions) ? task_questions : [],
         },
       },
       { upsert: true, new: true, setDefaultsOnInsert: true }

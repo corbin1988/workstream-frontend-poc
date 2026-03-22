@@ -17,6 +17,7 @@ export interface IWorkItemMapping extends Document {
     "Done": string[];
     "Blocked": string[];
   };
+  task_questions: Array<{ id: string; text: string; scope: "project" | "tenant" }>;
   created_at: Date;
   updated_at: Date;
 }
@@ -46,6 +47,16 @@ const WorkItemMappingSchema = new Schema<IWorkItemMapping>(
         "Blocked":     { type: [String], default: [] },
       },
       default: () => ({ "To Do": [], "In Progress": [], "Done": [], "Blocked": [] }),
+    },
+    task_questions: {
+      type: [
+        {
+          id:    { type: String, required: true },
+          text:  { type: String, required: true },
+          scope: { type: String, enum: ['project', 'tenant'], default: 'project' },
+        },
+      ],
+      default: () => [],
     },
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }

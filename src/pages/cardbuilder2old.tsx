@@ -46,21 +46,6 @@ type FieldMapping = {
     due_date: string;
 };
 
-type TaskQuestion = {
-    id: string;
-    text: string;
-    scope: "project" | "tenant";
-};
-
-const DEFAULT_TASK_QUESTIONS: TaskQuestion[] = [
-    { id: "q_yesterday", text: "What did you do since yesterday?", scope: "project" },
-    { id: "q_today",     text: "What will you do today?",          scope: "project" },
-];
-
-function newQId(): string {
-    return `q_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-}
-
 type JiraComment = {
     id: string;
     author: { displayName: string };
@@ -129,7 +114,7 @@ export default function CardBuilder2() {
     const [openSection, setOpenSection] = useState<string>("");
 
     // Wizard state
-    const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7>(1);
+    const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
 
     // Step 1 — Connection
     const [connStatus, setConnStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -161,10 +146,7 @@ export default function CardBuilder2() {
     const [statusesLoading, setStatusesLoading] = useState(false);
     const [statusMapping, setStatusMapping] = useState<StatusMapping>(EMPTY_STATUS_MAPPING);
 
-    // Step 6 — Task Questions
-    const [taskQuestions, setTaskQuestions] = useState<TaskQuestion[]>(DEFAULT_TASK_QUESTIONS);
-
-    // Step 7 — Saved payload
+    // Step 6 — Saved payload
     const [savedPayload, setSavedPayload] = useState<object | null>(null);
 
     // Live Jira issue state
@@ -346,7 +328,6 @@ export default function CardBuilder2() {
                         due_date:    mapping.due_date    ?? "duedate",
                     });
                     setStatusMapping(mapping.status_mapping ?? EMPTY_STATUS_MAPPING);
-                    setTaskQuestions(mapping.task_questions?.length ? mapping.task_questions : DEFAULT_TASK_QUESTIONS);
                 } else {
                     setSelectedIssueTypes(types.map((t) => t.id));
                 }
@@ -407,11 +388,7 @@ export default function CardBuilder2() {
         goToStatusMapping();
     }
 
-    function goToTaskQuestions() {
-        setStep(6);
-    }
-
-    async function saveAll() {
+    async function saveStatusMapping() {
         const project = projects.find((p) => p.key === selectedProject);
         const payload = {
             provider: "jira",
@@ -423,7 +400,6 @@ export default function CardBuilder2() {
             field_mapping: fieldMapping,
             // workstream bucket -> array of Jira status names; empty array means nothing maps to that bucket
             status_mapping: statusMapping,
-            task_questions: taskQuestions.filter((q) => q.text.trim() !== ""),
         };
         try {
             const res = await fetch(`${EXPRESS_URL}/api/mappings`, {
@@ -442,10 +418,10 @@ export default function CardBuilder2() {
         }
         localStorage.setItem("workstream_mapping", JSON.stringify(payload));
         setSavedPayload(payload);
-        setStep(7);
+        setStep(6);
     }
 
-    const STEP_LABELS = ["Connect", "Project", "Issue Types", "Field Map", "Status Map", "Task Questions", "Done"];
+    const STEP_LABELS = ["Connect", "Project", "Issue Types", "Field Map", "Status Map", "Done"];
 
     return (
         <div className="flex bg-gray-100 dark:bg-gray-900 p-6">
@@ -454,7 +430,7 @@ export default function CardBuilder2() {
                 {/* Step indicator */}
                 <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
                     {STEP_LABELS.map((label, i) => {
-                        const s = (i + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7;
+                        const s = (i + 1) as 1 | 2 | 3 | 4 | 5 | 6;
                         const active = step === s;
                         const done = step > s;
                         return (
@@ -695,8 +671,8 @@ export default function CardBuilder2() {
                                     ))}
                                 </div>
                                 {step === 5 && (
-                                    <Button size="sm" className="mt-4" onClick={goToTaskQuestions}>
-                                        Next — Task Questions
+                                    <Button size="sm" color="success" className="mt-4" onClick={saveStatusMapping}>
+                                        Save & Finish
                                     </Button>
                                 )}
                             </>
@@ -704,83 +680,8 @@ export default function CardBuilder2() {
                     </Card>
                 )}
 
-                {/* Step 6: Task Questions */}
-                {step >= 6 && (
-                    <Card>
-                        <h5 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Step 6 — Task Questions</h5>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-                            Configure the questions shown on each work card. Toggle scope to{" "}
-                            <span className="font-medium text-blue-600 dark:text-blue-400">All Projects</span> to share a question across your
-                            entire workspace, or keep it scoped to this project only.
-                        </p>
-                        <div className="space-y-3 mb-3">
-                            {taskQuestions.map((q) => (
-                                <div key={q.id} className="flex items-start gap-2">
-                                    <div className="flex-1 min-w-0 space-y-1.5">
-                                        <input
-                                            type="text"
-                                            className="w-full text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-2 py-1.5 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                                            value={q.text}
-                                            onChange={(e) =>
-                                                setTaskQuestions((prev) =>
-                                                    prev.map((item) => item.id === q.id ? { ...item, text: e.target.value } : item)
-                                                )
-                                            }
-                                            placeholder="Enter question…"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setTaskQuestions((prev) =>
-                                                    prev.map((item) =>
-                                                        item.id === q.id
-                                                            ? { ...item, scope: item.scope === "project" ? "tenant" : "project" }
-                                                            : item
-                                                    )
-                                                )
-                                            }
-                                            className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${
-                                                q.scope === "tenant"
-                                                    ? "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700"
-                                                    : "bg-gray-100 text-gray-500 border-gray-300 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600"
-                                            }`}
-                                        >
-                                            {q.scope === "tenant" ? "All Projects" : "This Project"}
-                                        </button>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => setTaskQuestions((prev) => prev.filter((item) => item.id !== q.id))}
-                                        className="mt-1.5 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                                        aria-label="Remove question"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() => setTaskQuestions((prev) => [...prev, { id: newQId(), text: "", scope: "project" }])}
-                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 mb-4"
-                        >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
-                            Add Question
-                        </button>
-                        {step === 6 && (
-                            <Button size="sm" color="success" onClick={saveAll}>
-                                Save & Finish
-                            </Button>
-                        )}
-                    </Card>
-                )}
-
-                {/* Step 7: Done */}
-                {step === 7 && savedPayload && (
+                {/* Step 6: Done */}
+                {step === 6 && savedPayload && (
                     <Card>
                         <h5 className="text-sm font-semibold text-green-700 dark:text-green-400 mb-1">✓ Mapping Saved</h5>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
@@ -805,7 +706,6 @@ export default function CardBuilder2() {
                                     setFieldMapping({ title: "summary", description: "description", status: "status", priority: "priority", due_date: "duedate" });
                                     setJiraStatuses([]);
                                     setStatusMapping(EMPTY_STATUS_MAPPING);
-                                    setTaskQuestions(DEFAULT_TASK_QUESTIONS);
                                     setSavedPayload(null);
                                 }}
                             >
@@ -834,7 +734,6 @@ export default function CardBuilder2() {
                                     setFieldMapping({ title: "summary", description: "description", status: "status", priority: "priority", due_date: "duedate" });
                                     setJiraStatuses([]);
                                     setStatusMapping(EMPTY_STATUS_MAPPING);
-                                    setTaskQuestions(DEFAULT_TASK_QUESTIONS);
                                     setSavedPayload(null);
                                 }}
                             >
@@ -997,38 +896,28 @@ export default function CardBuilder2() {
                         )}
 
                         {/* Standup — from Workstream DB (mock) */}
-                        {taskQuestions.length > 0 && (
-                            <div className="mt-4 space-y-3">
-                                {taskQuestions.map((q, idx) => {
-                                    const QUESTION_COLORS = [
-                                        { border: "border-blue-500",   bg: "bg-blue-50 dark:bg-gray-900/50"      },
-                                        { border: "border-indigo-500", bg: "bg-indigo-50 dark:bg-indigo-900/20"  },
-                                        { border: "border-cyan-500",   bg: "bg-cyan-50 dark:bg-cyan-900/20"      },
-                                        { border: "border-violet-500", bg: "bg-violet-50 dark:bg-violet-900/20"  },
-                                    ];
-                                    const color = QUESTION_COLORS[idx % QUESTION_COLORS.length];
-                                    const mockAnswer = q.id === "q_yesterday" ? mockStandupYesterday
-                                        : q.id === "q_today" ? mockStandupToday
-                                        : null;
-                                    return (
-                                        <div key={q.id} className={`pl-4 border-l-4 ${color.border} ${color.bg} rounded-r p-3`}>
-                                            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">{q.text || "Untitled question"}</h4>
-                                            {mockAnswer ? (
-                                                <ul className="space-y-1">
-                                                    {mockAnswer.split("\n").map((item, i) => (
-                                                        <li key={i} className="text-gray-700 dark:text-gray-300 text-sm flex items-start">
-                                                            <span className="mr-2">•</span><span>{item}</span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            ) : (
-                                                <p className="text-xs text-gray-400 dark:text-gray-500 italic">No answer yet</p>
-                                            )}
-                                        </div>
-                                    );
-                                })}
+                        <div className="mt-4 space-y-3">
+                            <div className="pl-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-gray-900/50 rounded-r p-3">
+                                <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">What did you do since yesterday?</h4>
+                                <ul className="space-y-1">
+                                    {mockStandupYesterday.split("\n").map((item, idx) => (
+                                        <li key={idx} className="text-gray-700 dark:text-gray-300 text-sm flex items-start">
+                                            <span className="mr-2">•</span><span>{item}</span>
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
-                        )}
+                            <div className="pl-4 border-l-4 border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 rounded-r p-3">
+                                <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">What will you do today?</h4>
+                                <ul className="space-y-1">
+                                    {mockStandupToday.split("\n").map((item, idx) => (
+                                        <li key={idx} className="text-gray-700 dark:text-gray-300 text-sm flex items-start">
+                                            <span className="mr-2">•</span><span>{item}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
 
                         {/* Footer Buttons */}
                         <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
