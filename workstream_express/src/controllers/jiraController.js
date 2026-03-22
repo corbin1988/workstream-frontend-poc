@@ -1,6 +1,7 @@
 'use strict';
 
 const { getAuthHeaders, flattenAdf, getJiraConfig } = require('../utils/utils');
+const { WorkItemMapping } = require('../models/WorkItemMapping');
 
 // GET /api/jira/search?jql=...&maxResults=50
 async function searchIssues(req, res) {
@@ -203,5 +204,50 @@ async function getStatuses(req, res) {
     }
 }
 
-module.exports = { searchIssues, getCreds, getIssues, getProjects, ping, getDevInfo, getIssueTypes, getFields, getStatuses };
+// POST /api/jira/mappings
+async function saveMapping(req, res) {
+    const { tenant_id, provider, project_key, project_name, issue_types, field_mapping, status_mapping } = req.body;
+
+    if (tenant_id === undefined || tenant_id === null || tenant_id === '') {
+        return res.status(400).json({ error: 'tenant_id is required' });
+    }
+    if (!project_key) {
+        return res.status(400).json({ error: 'project_key is required' });
+    }
+
+    try {
+        const doc = await WorkItemMapping.findOneAndUpdate(
+            {
+                tenant_id: BigInt(tenant_id),
+                provider: provider ?? 'jira',
+                project_key,
+            },
+            {
+                $set: {
+                    project_name: project_name ?? '',
+                    issue_types: issue_types ?? [],
+                    title:       field_mapping?.title       ?? 'summary',
+                    description: field_mapping?.description ?? 'description',
+                    status:      field_mapping?.status      ?? 'status',
+                    priority:    field_mapping?.priority    ?? 'priority',
+                    due_date:    field_mapping?.due_date    ?? 'duedate',
+                    status_mapping: {
+                        'To Do':       status_mapping?.['To Do']       ?? [],
+                        'In Progress': status_mapping?.['In Progress'] ?? [],
+                        'Done':        status_mapping?.['Done']        ?? [],
+                        'Blocked':     status_mapping?.['Blocked']     ?? [],
+                    },
+                },
+            },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+        res.setHeader('Cache-Control', 'no-store');
+        return res.status(200).json({ ok: true, id: doc._id });
+    } catch (err) {
+        console.error('[saveMapping]', err);
+        return res.status(500).json({ error: err?.message ?? 'Failed to save mapping' });
+    }
+}
+
+module.exports = { searchIssues, getCreds, getIssues, getProjects, ping, getDevInfo, getIssueTypes, getFields, getStatuses, saveMapping };
 

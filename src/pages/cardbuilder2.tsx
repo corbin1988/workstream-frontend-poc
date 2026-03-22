@@ -11,7 +11,8 @@ import type { JiraStatus } from "./api/jira-statuses";
 const EXPRESS_URL = process.env.NEXT_PUBLIC_EXPRESS_URL ?? 'http://localhost:3001';
 
 type WorkstreamStatus = "To Do" | "In Progress" | "Done" | "Blocked";
-type StatusMapping = Record<string, WorkstreamStatus>;
+type StatusMapping = Record<WorkstreamStatus, string[]>;
+const EMPTY_STATUS_MAPPING: StatusMapping = { "To Do": [], "In Progress": [], "Done": [], "Blocked": [] };
 
 function getInitials(name: string) {
     return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
@@ -143,7 +144,7 @@ export default function CardBuilder2() {
     // Step 5 — Status Mapping
     const [jiraStatuses, setJiraStatuses] = useState<JiraStatus[]>([]);
     const [statusesLoading, setStatusesLoading] = useState(false);
-    const [statusMapping, setStatusMapping] = useState<StatusMapping>({});
+    const [statusMapping, setStatusMapping] = useState<StatusMapping>(EMPTY_STATUS_MAPPING);
 
     // Step 6 — Saved payload
     const [savedPayload, setSavedPayload] = useState<object | null>(null);
@@ -193,8 +194,12 @@ export default function CardBuilder2() {
                 if (typeof s.name === "string") jiraStatusName = s.name;
             }
             if (!jiraStatusName) jiraStatusName = liveIssue.fields.status?.name ?? "";
-            // Use custom statusMapping if configured
-            if (jiraStatusName && statusMapping[jiraStatusName]) return statusMapping[jiraStatusName];
+            // Find which Workstream bucket this Jira status belongs to
+            if (jiraStatusName) {
+                const ws = (Object.entries(statusMapping) as [WorkstreamStatus, string[]][])
+                    .find(([, names]) => names.includes(jiraStatusName))?.[0];
+                if (ws) return ws;
+            }
             // Fallback to Jira status category
             if (statusVal && typeof statusVal === "object") {
                 const s = statusVal as Record<string, unknown>;
@@ -331,15 +336,16 @@ export default function CardBuilder2() {
             const data = await res.json();
             const statuses: JiraStatus[] = data.statuses ?? [];
             setJiraStatuses(statuses);
-            // Pre-populate defaults from Jira status categories
-            const defaults: StatusMapping = {};
+            // Pre-populate defaults by grouping Jira statuses into Workstream buckets
+            const defaults: StatusMapping = { "To Do": [], "In Progress": [], "Done": [], "Blocked": [] };
             for (const s of statuses) {
                 const cat = s.statusCategory.name;
-                if (cat === "In Progress") defaults[s.name] = "In Progress";
-                else if (cat === "Done") defaults[s.name] = "Done";
-                else defaults[s.name] = "To Do";
+                if (cat === "In Progress") defaults["In Progress"].push(s.name);
+                else if (cat === "Done") defaults["Done"].push(s.name);
+                else if (cat === "To Do") defaults["To Do"].push(s.name);
+                // unknown category: omit — user can assign manually
             }
-            setStatusMapping((prev) => ({ ...defaults, ...prev }));
+            setStatusMapping(defaults);
         } finally {
             setStatusesLoading(false);
             setStep(5);
@@ -356,9 +362,11 @@ export default function CardBuilder2() {
         goToStatusMapping();
     }
 
-    function saveStatusMapping() {
+    async function saveStatusMapping() {
         const project = projects.find((p) => p.key === selectedProject);
+        const tenantId = process.env.NEXT_PUBLIC_TENANT_ID ?? "1";
         const payload = {
+            tenant_id: tenantId,
             provider: "jira",
             project_key: selectedProject,
             project_name: project?.name ?? "",
@@ -366,9 +374,24 @@ export default function CardBuilder2() {
                 .filter((t) => selectedIssueTypes.includes(t.id))
                 .map((t) => ({ id: t.id, name: t.name })),
             field_mapping: fieldMapping,
+            // workstream bucket -> array of Jira status names; empty array means nothing maps to that bucket
             status_mapping: statusMapping,
         };
-        console.log("[Workstream] POST /api/work-item-mappings", JSON.stringify(payload, null, 2));
+        try {
+            const res = await fetch(`${EXPRESS_URL}/api/jira/mappings`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                console.error("[Workstream] Failed to save mapping:", data);
+            } else {
+                console.log("[Workstream] Mapping saved, id:", data.id);
+            }
+        } catch (err) {
+            console.error("[Workstream] Error saving mapping:", err);
+        }
         localStorage.setItem("workstream_mapping", JSON.stringify(payload));
         setSavedPayload(payload);
         setStep(6);
@@ -581,8 +604,13 @@ export default function CardBuilder2() {
                         ) : (
                             <>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-                                    Map each Jira status to a Workstream canonical status. Defaults are pre-filled from Jira's status categories.
+                                    Assign each Jira status to a Workstream bucket. Multiple Jira statuses can share the same bucket. Leave a status unassigned to exclude it from syncing.
                                 </p>
+                                <div className="flex items-center gap-2 mb-1 px-0.5">
+                                    <span className="flex-1 text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide">Jira Status</span>
+                                    <span className="w-4 shrink-0" />
+                                    <span className="w-36 shrink-0 text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide">Workstream</span>
+                                </div>
                                 <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
                                     {jiraStatuses.map((s) => (
                                         <div key={s.id} className="flex items-center gap-2">
@@ -594,13 +622,20 @@ export default function CardBuilder2() {
                                             <Select
                                                 sizing="sm"
                                                 className="w-36 shrink-0"
-                                                value={statusMapping[s.name] ?? ""}
-                                                onChange={(e) =>
-                                                    setStatusMapping((prev) => ({
-                                                        ...prev,
-                                                        [s.name]: e.target.value as WorkstreamStatus,
-                                                    }))
-                                                }
+                                                value={(Object.entries(statusMapping) as [WorkstreamStatus, string[]][]).find(([, names]) => names.includes(s.name))?.[0] ?? ""}
+                                                onChange={(e) => {
+                                                    const newWs = e.target.value as WorkstreamStatus | "";
+                                                    setStatusMapping((prev) => {
+                                                        const next: StatusMapping = {
+                                                            "To Do": prev["To Do"].filter((n) => n !== s.name),
+                                                            "In Progress": prev["In Progress"].filter((n) => n !== s.name),
+                                                            "Done": prev["Done"].filter((n) => n !== s.name),
+                                                            "Blocked": prev["Blocked"].filter((n) => n !== s.name),
+                                                        };
+                                                        if (newWs) next[newWs] = [...next[newWs], s.name];
+                                                        return next;
+                                                    });
+                                                }}
                                             >
                                                 <option value="">— unmapped —</option>
                                                 <option value="To Do">To Do</option>
@@ -646,7 +681,7 @@ export default function CardBuilder2() {
                                 setFields([]);
                                 setFieldMapping({ title: "summary", description: "description", status: "status", priority: "priority", due_date: "duedate" });
                                 setJiraStatuses([]);
-                                setStatusMapping({});
+                                setStatusMapping(EMPTY_STATUS_MAPPING);
                                 setSavedPayload(null);
                             }}
                         >

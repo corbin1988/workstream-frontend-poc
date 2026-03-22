@@ -1,7 +1,7 @@
 'use strict';
 
 const { Router } = require('express');
-const { searchIssues, getCreds, getIssues, getProjects, ping, getDevInfo, getIssueTypes, getFields, getStatuses } = require('../controllers/jiraController');
+const { searchIssues, getCreds, getIssues, getProjects, ping, getDevInfo, getIssueTypes, getFields, getStatuses, saveMapping } = require('../controllers/jiraController');
 
 const router = Router();
 
@@ -31,5 +31,8 @@ router.get('/fields', getFields);
 
 // GET /api/jira/statuses
 router.get('/statuses', getStatuses);
+
+// POST /api/jira/mappings
+router.post('/mappings', saveMapping);
 
 module.exports = router;
