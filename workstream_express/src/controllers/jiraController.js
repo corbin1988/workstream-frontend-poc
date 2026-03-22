@@ -1,7 +1,10 @@
 'use strict';
 
 const { getAuthHeaders, flattenAdf, getJiraConfig } = require('../utils/utils');
+const { getMapping } = require('../repositories/mappingRepository');
 const { WorkItemMapping } = require('../models/WorkItemMapping');
+
+const TENANT_ID = '1';
 
 // GET /api/jira/search?jql=...&maxResults=50
 async function searchIssues(req, res) {
@@ -9,7 +12,16 @@ async function searchIssues(req, res) {
     if (!config) return res.status(500).json({ error: 'Jira credentials not configured' });
     const { email, token, domain } = config;
 
-    const jql = (req.query.jql) || 'project=WORK';
+    const projectKey = req.query.projectKey ? String(req.query.projectKey) : null;
+    if (!projectKey) return res.status(400).json({ error: 'projectKey query param is required' });
+
+    const mapping = await WorkItemMapping.findOne({ tenant_id: BigInt(TENANT_ID), provider: 'jira', project_key: projectKey }).lean();
+    if (!mapping) return res.status(404).json({ error: `No Jira mapping found for project ${projectKey}` });
+    console.log('\x1b[31m[searchIssues] projectKey from mapping:', mapping.project_key, '\x1b[0m');
+
+    const jql = req.query.jql
+        ? String(req.query.jql).replace(/project\s*=\s*["']?[A-Z0-9_-]+["']?/i, `project = "${projectKey}"`)
+        : `project = "${projectKey}" ORDER BY updated DESC`;
     const maxResults = parseInt(req.query.maxResults || '50', 10);
 
     const jiraRes = await fetch(
@@ -21,10 +33,29 @@ async function searchIssues(req, res) {
         }
     );
 
+
     const data = await jiraRes.json();
     flattenAdf(data);
 
+    if (Array.isArray(data.issues)) {
+        console.log(`[searchIssues] getMapping(${TENANT_ID}, jira, ${projectKey}) →`, `found, issue_types: ${JSON.stringify(mapping.issue_types)}`);
+
+        if (Array.isArray(mapping.issue_types) && mapping.issue_types.length > 0) {
+            const allowedTypes = new Set(mapping.issue_types.map(t => t.name.toLowerCase()));
+            console.log('[searchIssues] allowedTypes:', [...allowedTypes]);
+            console.log('[searchIssues] issues before filter:', data.issues.map(i => `${i.key} (${i.fields?.issuetype?.name})`));
+            data.issues = data.issues.filter(issue => {
+                const typeName = issue.fields?.issuetype?.name ?? '';
+                return allowedTypes.has(typeName.toLowerCase());
+            });
+            data.total = data.issues.length;
+            console.log('[searchIssues] issues after filter:', data.issues.map(i => i.key));
+        }
+    }
+
     res.setHeader('Cache-Control', 'no-store');
+    // console.log('[searchIssues]', JSON.stringify(data, null, 2));
+    // console.log("HITT")
     return res.status(jiraRes.status).json(data);
 }
 
@@ -203,8 +234,6 @@ async function getStatuses(req, res) {
         return res.status(500).json({ error: 'Failed to fetch statuses' });
     }
 }
-
-const TENANT_ID = '1';
 
 // POST /api/jira/mappings
 async function saveMapping(req, res) {

@@ -360,9 +360,12 @@ export default function CardBuilder2() {
             const data = await res.json();
             const statuses: JiraStatus[] = data.statuses ?? [];
             setJiraStatuses(statuses);
-            // Pre-populate defaults by grouping Jira statuses into Workstream buckets
+            // Pre-populate defaults by grouping Jira statuses into Workstream buckets (deduplicated)
             const defaults: StatusMapping = { "To Do": [], "In Progress": [], "Done": [], "Blocked": [] };
+            const seen = new Set<string>();
             for (const s of statuses) {
+                if (seen.has(s.name)) continue;
+                seen.add(s.name);
                 const cat = s.statusCategory.name;
                 if (cat === "In Progress") defaults["In Progress"].push(s.name);
                 else if (cat === "Done") defaults["Done"].push(s.name);

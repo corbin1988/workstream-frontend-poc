@@ -3,19 +3,22 @@ import WorkDrawer4 from '@/components/WorkDrawer4';
 
 const EXPRESS_URL = process.env.NEXT_PUBLIC_EXPRESS_URL ?? 'http://localhost:3001';
 
-interface WorkstreamMapping {
+interface DbMapping {
   provider: string;
   project_key: string;
   project_name: string;
   issue_types: { id: string; name: string }[];
-  field_mapping: {
-    title: string;
-    description: string;
-    status: string;
-    priority: string;
-    due_date: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  due_date: string;
+  status_mapping: {
+    'To Do': string[];
+    'In Progress': string[];
+    'Done': string[];
+    'Blocked': string[];
   };
-  status_mapping: Record<string, string>;
 }
 
 interface WorkItem {
@@ -37,41 +40,26 @@ function resolveFieldText(fields: Record<string, unknown>, fieldId: string): str
   return String(val);
 }
 
+// Inverts the DB status_mapping ({ "In Progress": ["In Progress", "In Review"] })
+// into a lookup map ({ "In Progress": "In Progress", "In Review": "In Progress" })
+function buildStatusLookup(statusMapping: DbMapping['status_mapping']): Record<string, string> {
+  const lookup: Record<string, string> = {};
+  for (const [workstreamStatus, jiraStatuses] of Object.entries(statusMapping)) {
+    for (const jiraStatus of jiraStatuses) {
+      lookup[jiraStatus] = workstreamStatus;
+    }
+  }
+  return lookup;
+}
+
 function getWorkstreamStatus(
   fields: Record<string, unknown>,
   statusFieldId: string,
-  statusMapping: Record<string, string>
+  statusLookup: Record<string, string>
 ): string {
   const jiraStatusName = resolveFieldText(fields, statusFieldId) || resolveFieldText(fields, 'status');
-  return statusMapping[jiraStatusName] ?? jiraStatusName;
+  return statusLookup[jiraStatusName] ?? jiraStatusName;
 }
-
-const DEFAULT_MAPPING: WorkstreamMapping = {
-  provider: 'jira',
-  project_key: 'WORK',
-  project_name: 'Workstream',
-  issue_types: [
-    { id: '10009', name: 'Feature' },
-    { id: '10007', name: 'Task' },
-    { id: '10008', name: 'Story' },
-    { id: '10010', name: 'Bug' },
-    { id: '10005', name: 'Epic' },
-  ],
-  field_mapping: {
-    title: 'summary',
-    description: 'description',
-    status: 'status',
-    priority: 'priority',
-    due_date: 'duedate',
-  },
-  status_mapping: {
-    'Backlog': 'To Do',
-    'To Do': 'To Do',
-    'In Progress': 'In Progress',
-    'Done': 'Done',
-    'In Review': 'In Progress',
-  },
-};
 
 export default function DailyBuilder() {
   const [open, setOpen] = useState(false);
@@ -85,14 +73,19 @@ export default function DailyBuilder() {
     setLoading(true);
     setOpen(true);
     try {
-      const raw = localStorage.getItem('workstream_mapping');
-      const mapping: WorkstreamMapping = raw ? JSON.parse(raw) : DEFAULT_MAPPING;
+      const mappingRes = await fetch(`${EXPRESS_URL}/api/mappings?provider=jira`);
+      if (!mappingRes.ok) throw new Error('Failed to fetch mapping');
+      const { mappings } = await mappingRes.json();
+      const mapping: DbMapping = mappings?.[0];
+      if (!mapping) throw new Error('No mapping configured');
+
+      const statusLookup = buildStatusLookup(mapping.status_mapping);
 
       const issueTypeFilter = mapping.issue_types.length > 0
         ? ` AND issueType in (${mapping.issue_types.map(t => `"${t.name}"`).join(', ')})`
         : '';
       const jql = `project = "${mapping.project_key}" AND assignee = currentUser() AND statusCategory != Done${issueTypeFilter} ORDER BY updated DESC`;
-      const res = await fetch(`${EXPRESS_URL}/api/jira/search?jql=${encodeURIComponent(jql)}&maxResults=50`);
+      const res = await fetch(`${EXPRESS_URL}/api/jira/search?jql=${encodeURIComponent(jql)}&maxResults=50&projectKey=${encodeURIComponent(mapping.project_key)}`);
       if (!res.ok) return;
       const data = await res.json();
       const issues: Array<{ id: string; key: string; fields: Record<string, unknown> }> = data.issues ?? [];
@@ -100,15 +93,8 @@ export default function DailyBuilder() {
       const newInProgress: WorkItem[] = [];
 
       for (const issue of issues) {
-        const title =
-          resolveFieldText(issue.fields, mapping.field_mapping.title) || issue.key;
-        // Apply status_mapping from the saved mapping (e.g. "Backlog" → "To Do", "In Review" → "In Progress")
-        const mappedStatus = getWorkstreamStatus(
-          issue.fields,
-          mapping.field_mapping.status,
-          mapping.status_mapping
-        );
-
+        const title = resolveFieldText(issue.fields, mapping.title) || issue.key;
+        const mappedStatus = getWorkstreamStatus(issue.fields, mapping.status, statusLookup);
         newInProgress.push({ key: issue.key, title, whyHere: mappedStatus });
       }
 
