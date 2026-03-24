@@ -4,6 +4,8 @@ import cors from 'cors';
 import type { Request, Response } from 'express';
 import { connectDB } from './db';
 import mappingRoutes from './routes/mappingRoutes';
+import tenantConfigRoutes from './routes/tenantConfigRoutes';
+import workItemRoutes from './routes/workItemRoutes';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const jiraRoutes = require('./routes/jiraRoutes');
 
@@ -15,6 +17,8 @@ app.use(express.json());
 
 app.use('/api/jira', jiraRoutes);
 app.use('/api/mappings', mappingRoutes);
+app.use('/api/tenant-config', tenantConfigRoutes);
+app.use('/api/work-items', workItemRoutes);
 
 app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'Workstream Express API is running' });

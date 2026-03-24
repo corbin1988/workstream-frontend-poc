@@ -19,6 +19,7 @@ interface DbMapping {
     'Done': string[];
     'Blocked': string[];
   };
+  task_questions: Array<{ id: string; text: string }>;
 }
 
 interface WorkItem {
@@ -97,6 +98,7 @@ export default function DailyBuilder() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [projectItems, setProjectItems] = useState<ProjectItems[]>([]);
+  const [tenantQuestions, setTenantQuestions] = useState<Array<{ id: string; text: string }>>([]);
 
   async function handleOpen() {
     setProjectItems([]);
@@ -108,6 +110,10 @@ export default function DailyBuilder() {
       const { mappings } = await mappingRes.json();
       if (!mappings?.length) throw new Error('No mapping configured');
 
+      const tenantRes = await fetch(`${EXPRESS_URL}/api/tenant-config`);
+      const tenantData = tenantRes.ok ? await tenantRes.json() : { config: { task_questions: [] } };
+      setTenantQuestions(tenantData.config?.task_questions ?? []);
+
       const results = await Promise.all(
         (mappings as DbMapping[]).map(async (mapping) => {
           const statusLookup = buildStatusLookup(mapping.status_mapping);
@@ -118,7 +124,7 @@ export default function DailyBuilder() {
           const res = await fetch(
             `${EXPRESS_URL}/api/jira/search?jql=${encodeURIComponent(jql)}&maxResults=50&projectKey=${encodeURIComponent(mapping.project_key)}`
           );
-          if (!res.ok) return { projectKey: mapping.project_key, projectName: mapping.project_name, activeInProgress: [] };
+          if (!res.ok) return { projectKey: mapping.project_key, projectName: mapping.project_name, activeInProgress: [], task_questions: [] };
           const data = await res.json();
           const issues: Array<{ id: string; key: string; fields: Record<string, unknown> }> = data.issues ?? [];
           const activeInProgress: WorkItem[] = issues.map(issue => ({
@@ -127,7 +133,7 @@ export default function DailyBuilder() {
             intent: resolveDescriptionExcerpt(issue.fields, mapping.description),
             whyHere: getWorkstreamStatus(issue.fields, mapping.status, statusLookup),
           }));
-          return { projectKey: mapping.project_key, projectName: mapping.project_name, activeInProgress };
+          return { projectKey: mapping.project_key, projectName: mapping.project_name, activeInProgress, task_questions: mapping.task_questions ?? [] };
         })
       );
       setProjectItems(results);
@@ -154,6 +160,7 @@ export default function DailyBuilder() {
         onClose={() => setOpen(false)}
         loading={loading}
         projects={projectItems}
+        tenantQuestions={tenantQuestions}
       />
     </div>
   );

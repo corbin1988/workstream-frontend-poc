@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 interface WorkItem {
   key: string;
@@ -8,6 +8,7 @@ interface WorkItem {
   hasChanges?: boolean;
   whyHere?: string;
   triaged?: boolean;
+  projectKey?: string;
 }
 
 export interface ProjectItems {
@@ -15,6 +16,7 @@ export interface ProjectItems {
   projectName: string;
   activeInProgress: WorkItem[];
   suggested?: Array<WorkItem & { reason: string }>;
+  task_questions: Array<{ id: string; text: string }>;
 }
 
 interface DrawerProps {
@@ -25,6 +27,7 @@ interface DrawerProps {
   continueFromYesterday?: WorkItem[];
   activeInProgress?: WorkItem[];
   suggested?: Array<WorkItem & { reason: string }>;
+  tenantQuestions?: Array<{ id: string; text: string }>;
 }
 
 // Sample data based on work review spec
@@ -74,8 +77,10 @@ export default function WorkDrawer2({
   projects,
   continueFromYesterday = [],
   activeInProgress = [],
-  suggested = []
+  suggested = [],
+  tenantQuestions = [],
 }: DrawerProps) {
+  const router = useRouter();
   const [expandedSuggested, setExpandedSuggested] = useState(false);
   const [workItems, setWorkItems] = useState<Record<string, { status: string; note: string }>>({});
   const [searchQuery, setSearchQuery] = useState('');
@@ -88,8 +93,10 @@ export default function WorkDrawer2({
   const [addedActiveItems, setAddedActiveItems] = useState<WorkItem[]>([]);
   const [activeTab, setActiveTab] = useState<string>('all');
 
-  // Multi-project derived values
-  const allProjectActiveItems = projects?.flatMap(p => p.activeInProgress) ?? [];
+  // Multi-project derived values — embed projectKey so handleStartReview can look up questions
+  const allProjectActiveItems = projects?.flatMap(p =>
+    p.activeInProgress.map(item => ({ ...item, projectKey: p.projectKey }))
+  ) ?? [];
   const allProjectSuggested = projects?.flatMap(p => p.suggested ?? []) ?? [];
   const hasTabs = (projects?.length ?? 0) >= 2;
   const tabProject = hasTabs && activeTab !== 'all'
@@ -151,6 +158,34 @@ export default function WorkDrawer2({
 
   const handleCloseSearchOverlay = () => {
     setSearchOverlayOpen(false);
+  };
+
+  const handleStartReview = () => {
+    const allItems = [...continueItems, ...activeItems];
+    // Exclude items explicitly dismissed
+    const selected = allItems.filter(item => {
+      const status = workItems[item.key]?.status;
+      return status !== 'done' && status !== 'notmine';
+    });
+
+    const sessionItems = selected.map(item => {
+      const pk = item.projectKey ?? '';
+      const project = projects?.find(p => p.projectKey === pk);
+      const projectQs = (project?.task_questions ?? []).map(q => ({ ...q, scope: 'project' as const }));
+      const tenantQs = tenantQuestions.map(q => ({ ...q, scope: 'tenant' as const }));
+      return {
+        key: item.key,
+        title: item.title,
+        intent: item.intent,
+        projectKey: pk,
+        status: workItems[item.key]?.status ?? '',
+        questions: [...tenantQs, ...projectQs],
+      };
+    });
+
+    sessionStorage.setItem('workstream_review_session', JSON.stringify({ items: sessionItems }));
+    onClose();
+    router.push('/workreview');
   };
 
   // Filter search results based on query, using items from props
@@ -679,13 +714,13 @@ export default function WorkDrawer2({
               >
                 Cancel
               </button>
-              <Link
-                href="/workreview"
-                onClick={onClose}
+              <button
+                type="button"
+                onClick={handleStartReview}
                 className="flex-1 px-5 py-2.5 text-sm font-medium text-center text-white rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
               >
                 Start review
-              </Link>
+              </button>
             </div>
           </div>
         </div>
